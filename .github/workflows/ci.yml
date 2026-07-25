@@ -16,7 +16,7 @@ jobs:
       - name: Install (tolerate pnpm's non-fatal ignored-builds notice)
         run: |
           set +e
-          pnpm install --frozen-lockfile 2>/tmp/pnpm-err.log
+          pnpm install --frozen-lockfile >/tmp/pnpm-err.log 2>&1
           code=$?
           cat /tmp/pnpm-err.log
           if [ $code -ne 0 ]; then
