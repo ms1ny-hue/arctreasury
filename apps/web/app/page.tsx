@@ -77,22 +77,40 @@ export default async function Dashboard() {
           <div className="kpi"><div className="num">{m.shadow.avoidedShortfalls}</div><div className="lab">Shortfall avoided</div><div className="sub">weekend payout, would have missed</div></div>
         </div>
 
-        {/* LIVE ARC */}
+        <div className="legend">
+          <span><i style={{ background: "var(--emerald)" }} /> LIVE — read from Arc RPC now</span>
+          <span><i style={{ background: "var(--cyan)" }} /> ON-CHAIN — stored in the deployed contract</span>
+          <span><i style={{ background: "var(--amber)" }} /> SIMULATED — Northstar Pay demo data (real engine, synthetic inputs)</span>
+        </div>
+
+        {/* ARC — VERIFIED LIVE */}
         <section className="card live-card">
-          <div className="card-eyebrow">◆ Live on Arc Testnet</div>
-          <h2>A full governed lifecycle, executed on-chain</h2>
-          <p className="sub">Register → human approve → execute. USDC moved through the policy executor to an allowlisted vault, and the private certificate was verified against its on-chain commitment.</p>
-          <div className="grid">
-            <div className="stat"><div className="l">TreasuryPolicyExecutor</div><div className="v small"><a href={m.deployment.addressUrl} target="_blank" rel="noreferrer">{m.deployment.address}</a></div></div>
-            <div className="stat"><div className="l">Execute tx · block {m.deployment.executeBlock}</div><div className="v small"><a href={m.deployment.executeTxUrl} target="_blank" rel="noreferrer">{m.deployment.executeTx.slice(0, 22)}…</a></div></div>
-            <div className="stat"><div className="l">Certificate vs on-chain commitment</div><div className="v">{m.deployment.verified ? <span className="good">verified ✓</span> : <span className="hot">mismatch</span>}</div></div>
+          <div className="card-eyebrow">◆ Arc integration — verified live<span className="prov live">Live</span><span className="prov chain">On-chain</span></div>
+          <h2>This page reads the deployed contract on Arc Testnet, right now</h2>
+          <p className="sub">
+            Not a screenshot and not hardcoded: on every request the server calls the Arc Testnet RPC and reads the
+            deployed executor&apos;s storage — the proposal it holds, whether it executed, and the certificate hash it
+            committed. The treasury figures below are simulated; this connection is not.
+          </p>
+          <p className="readline">
+            RPC <b>{m.live.reachable ? "connected" : "unreachable"}</b> · {m.live.rpc} · read at {m.live.readAt} · latest block {m.live.block}
+          </p>
+          <div className="grid" style={{ marginTop: 16 }}>
+            <div className="stat"><div className="l">Executor contract (live)</div><div className="v small"><a href={m.deployment.addressUrl} target="_blank" rel="noreferrer">{m.deployment.address}</a></div></div>
+            <div className="stat"><div className="l">On-chain proposal amount</div><div className="v small good">{m.live.proposalAmountOnchain ?? "—"}</div></div>
+            <div className="stat"><div className="l">On-chain executed flag</div><div className="v">{m.live.onchainExecuted === null ? "—" : m.live.onchainExecuted ? <span className="good">true ✓</span> : <span className="hot">false</span>}</div></div>
+            <div className="stat"><div className="l">Per-tx cap (contract)</div><div className="v small">{m.live.maxSingleAmount ?? "—"}</div></div>
+            <div className="stat"><div className="l">Execute tx receipt (live)</div><div className="v small"><a href={m.deployment.executeTxUrl} target="_blank" rel="noreferrer">{m.live.txStatus ?? "—"}{m.live.txBlock ? ` · block ${m.live.txBlock}` : ""}{m.live.txLogs != null ? ` · ${m.live.txLogs} logs` : ""}</a></div></div>
+            <div className="stat"><div className="l">Certificate hash matches on-chain</div><div className="v">{m.live.matchesPrivateCert === null ? "—" : m.live.matchesPrivateCert ? <span className="good">verified ✓</span> : <span className="hot">mismatch</span>}</div></div>
           </div>
-          <div className="callout good">On-chain <span className="mono">certificateCommitmentOf</span> equals the private certificate&apos;s SHA-256 (<span className="mono">{m.deployment.commitment.slice(0, 22)}…</span>). Coverage proven without publishing treasury data.</div>
+          <div className="callout good">
+            The private Settlement Coverage Certificate&apos;s SHA-256 (<span className="mono">{m.deployment.commitment.slice(0, 22)}…</span>) equals the <span className="mono">bytes32</span> the contract holds — read live above. Coverage is provable on-chain without publishing any treasury data.
+          </div>
         </section>
 
         {/* RECOMMENDATION */}
         <section className="card">
-          <div className="card-eyebrow">Decision</div>
+          <div className="card-eyebrow">Decision<span className="prov sim">Simulated data</span></div>
           <h2>Recommended action — the smallest safe rebalance</h2>
           <p className="sub">US settlement wallet → EU settlement wallet, over the 24/7 Arc rail. The amount is the provably minimal top-up that keeps every mandatory obligation covered under the downside scenario.</p>
           <div className="grid">
@@ -107,7 +125,7 @@ export default async function Dashboard() {
 
         {/* FORECAST */}
         <section className="card">
-          <div className="card-eyebrow">Forecast · 48h operational</div>
+          <div className="card-eyebrow">Forecast · 48h operational<span className="prov sim">Simulated data</span></div>
           <h2>Where the EU wallet breaches, hour by hour</h2>
           <p className="sub">Downside scenario: Friday receivable delayed, outflows +5%. As of {m.asOf}. Earliest shortfall at <span className="mono">{m.forecast.shortfallAt}</span>.</p>
           <div className="grid" style={{ marginBottom: 18 }}>
@@ -146,7 +164,7 @@ export default async function Dashboard() {
 
         {/* POLICY */}
         <section className="card">
-          <div className="card-eyebrow">Controls</div>
+          <div className="card-eyebrow">Controls<span className="prov sim">Simulated data</span></div>
           <h2>Deterministic policy evaluation</h2>
           <p className="sub">Versioned, testable, independent of any language model. A failed mandatory rule makes the proposal non-approvable.</p>
           <div style={{ overflowX: "auto" }}>
@@ -168,7 +186,7 @@ export default async function Dashboard() {
 
         {/* CERTIFICATE */}
         <section className="card">
-          <div className="card-eyebrow">Signature primitive</div>
+          <div className="card-eyebrow">Signature primitive<span className="prov sim">Simulated data</span><span className="prov chain">Hash on-chain</span></div>
           <h2>Settlement Coverage Certificate</h2>
           <p className="sub">Machine-verifiable proof the action keeps every mandatory obligation covered. Only the opaque commitment goes on-chain.</p>
           <div className="grid">
@@ -186,7 +204,7 @@ export default async function Dashboard() {
 
         {/* SHADOW */}
         <section className="card">
-          <div className="card-eyebrow">ROI · shadow mode</div>
+          <div className="card-eyebrow">ROI · shadow mode<span className="prov sim">Simulated data</span></div>
           <h2>What dynamic funding releases vs a static buffer</h2>
           <p className="sub">Counterfactual against a static 3,000,000 USDC prefunding buffer. No money moves; every figure is computed from the dataset with the formula shown, and nothing is annualized.</p>
           <div className="grid" style={{ marginBottom: 16 }}>

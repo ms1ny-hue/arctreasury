@@ -53,6 +53,21 @@ export interface DashboardModel {
   shadow: { capitalReleased: string; reductionPct: string; avoidedShortfalls: number; metrics: { name: string; arc: string; base: string; unit: string }[] };
   blocked: { amount: string; verifierPassed: boolean; policyApprovable: boolean };
   proposal: { state: string; approver: string; lifecycle: string[] };
+  live: {
+    rpc: string;
+    readAt: string;
+    reachable: boolean;
+    block: string;
+    vaultUsdc: string | null;
+    onchainExecuted: boolean | null;
+    onchainCommitment: string | null;
+    maxSingleAmount: string | null;
+    proposalAmountOnchain: string | null;
+    matchesPrivateCert: boolean | null;
+    txStatus: string | null;
+    txBlock: number | null;
+    txLogs: number | null;
+  };
   ai: { source: string; model: string | null; headline: string; whatToDo: string; bindingConstraint: string; consequenceOfInaction: string; disclaimer: string };
   deployment: {
     address: string;
@@ -98,6 +113,40 @@ export async function buildDashboardModel(): Promise<DashboardModel> {
 
   const explained = await explainRecommendation(buildExplainContext(data, rec, policyEval, cert));
 
+  // --- LIVE on-chain reads of the deployed executor (proves it is not hardcoded) ---
+  const usdc6 = (v: bigint) => (Number(v) / 1e6).toLocaleString(undefined, { maximumFractionDigits: 6 }) + " USDC";
+  const live: DashboardModel["live"] = {
+    rpc: "https://rpc.blockdaemon.testnet.arc.network",
+    readAt: new Date().toISOString(),
+    reachable: false,
+    block: network.block,
+    vaultUsdc: network.walletUsdc,
+    onchainExecuted: null,
+    onchainCommitment: null,
+    maxSingleAmount: null,
+    proposalAmountOnchain: null,
+    matchesPrivateCert: null,
+    txStatus: null,
+    txBlock: null,
+    txLogs: null,
+  };
+  try {
+    const arc = new ArcTestnetGateway();
+    const [ex, receipt] = await Promise.all([
+      arc.readExecutorState(deployment.address as `0x${string}`, deployment.proof.proposalId as `0x${string}`),
+      arc.getReceiptState(deployment.transactions.executeProposal as `0x${string}`),
+    ]);
+    live.reachable = true;
+    live.onchainExecuted = ex.isExecuted;
+    live.onchainCommitment = ex.certificateCommitment;
+    live.maxSingleAmount = usdc6(ex.maxSingleAmount);
+    live.proposalAmountOnchain = ex.proposal.exists ? usdc6(ex.proposal.amount) : "not found";
+    live.matchesPrivateCert = ex.certificateCommitment.toLowerCase() === cert.commitment.toLowerCase();
+    if (receipt) { live.txStatus = receipt.status; live.txBlock = receipt.blockNumber; live.txLogs = receipt.logs; }
+  } catch {
+    /* RPC unreachable: leave nulls, UI shows offline */
+  }
+
   return {
     asOf: humanUtc(data.asOf),
     network,
@@ -141,6 +190,7 @@ export async function buildDashboardModel(): Promise<DashboardModel> {
     },
     blocked: { amount: fmt(unsafe.amount), verifierPassed: unsafeVerify.passed, policyApprovable: unsafePolicy.approvable },
     proposal: { state: proposal.state, approver: proposal.approval?.approver ?? "-", lifecycle: proposal.audit.map((a) => a.kind) },
+    live,
     ai: {
       source: explained.source,
       model: explained.model ?? null,

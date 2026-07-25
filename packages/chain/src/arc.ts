@@ -51,7 +51,9 @@ export class ArcTestnetGateway implements ChainGateway {
   private readonly executor?: Address;
 
   constructor(cfg: ArcGatewayConfig = {}) {
-    const rpc = cfg.rpcUrl ?? ARC_TESTNET.rpcUrls.primary;
+    // Blockdaemon endpoint by default: the primary rate-limits several parallel
+    // contract reads per request (the dashboard does exactly that).
+    const rpc = cfg.rpcUrl ?? ARC_TESTNET.rpcUrls.blockdaemon;
     this.pub = createPublicClient({ chain: arcTestnetChain, transport: http(rpc) });
     this.usdc = (cfg.usdcAddress ?? (ARC_TESTNET.contracts.usdc as Address));
     if (cfg.executorAddress) this.executor = cfg.executorAddress;
@@ -133,5 +135,37 @@ export class ArcTestnetGateway implements ChainGateway {
       explorerUrl: `${ARC_TESTNET.explorerUrl}/tx/${hash}`,
       confirmedAt: Math.floor(Date.now() / 1000),
     };
+  }
+
+  /** Live-read the deployed executor's on-chain state for a proposal id. */
+  async readExecutorState(executor: Address, proposalId: Hash): Promise<{
+    isExecuted: boolean;
+    certificateCommitment: string;
+    maxSingleAmount: bigint;
+    proposal: { token: string; destination: string; amount: bigint; approved: boolean; executed: boolean; exists: boolean };
+  }> {
+    const [isExecuted, certificateCommitment, maxSingleAmount, proposal] = await Promise.all([
+      this.pub.readContract({ address: executor, abi: EXECUTOR_ABI, functionName: "isExecuted", args: [proposalId] }),
+      this.pub.readContract({ address: executor, abi: EXECUTOR_ABI, functionName: "certificateCommitmentOf", args: [proposalId] }),
+      this.pub.readContract({ address: executor, abi: EXECUTOR_ABI, functionName: "maxSingleAmount", args: [] }),
+      this.pub.readContract({ address: executor, abi: EXECUTOR_ABI, functionName: "getProposal", args: [proposalId] }),
+    ]);
+    const p = proposal as { token: string; destination: string; amount: bigint; approved: boolean; executed: boolean; exists: boolean };
+    return {
+      isExecuted: isExecuted as boolean,
+      certificateCommitment: certificateCommitment as string,
+      maxSingleAmount: maxSingleAmount as bigint,
+      proposal: { token: p.token, destination: p.destination, amount: p.amount, approved: p.approved, executed: p.executed, exists: p.exists },
+    };
+  }
+
+  /** Live-read a confirmed transaction receipt (status + block + log count). */
+  async getReceiptState(hash: Hash): Promise<{ status: string; blockNumber: number; logs: number } | null> {
+    try {
+      const r = await this.pub.getTransactionReceipt({ hash });
+      return { status: r.status === "success" ? "success" : "reverted", blockNumber: Number(r.blockNumber), logs: r.logs.length };
+    } catch {
+      return null;
+    }
   }
 }

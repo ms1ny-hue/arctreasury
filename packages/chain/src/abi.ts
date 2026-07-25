@@ -27,4 +27,30 @@ export const EXECUTOR_ABI = [
   { type: "function", name: "cancelProposal", stateMutability: "nonpayable", inputs: [{ name: "proposalId", type: "bytes32" }], outputs: [] },
   { type: "function", name: "certificateCommitmentOf", stateMutability: "view", inputs: [{ name: "proposalId", type: "bytes32" }], outputs: [{ type: "bytes32" }] },
   { type: "function", name: "isExecuted", stateMutability: "view", inputs: [{ name: "proposalId", type: "bytes32" }], outputs: [{ type: "bool" }] },
+  { type: "function", name: "maxSingleAmount", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "allowedTokens", stateMutability: "view", inputs: [{ name: "token", type: "address" }], outputs: [{ type: "bool" }] },
+  {
+    type: "function",
+    name: "getProposal",
+    stateMutability: "view",
+    inputs: [{ name: "proposalId", type: "bytes32" }],
+    outputs: [
+      {
+        type: "tuple",
+        components: [
+          { name: "token", type: "address" },
+          { name: "destination", type: "address" },
+          { name: "amount", type: "uint256" },
+          { name: "expiry", type: "uint64" },
+          { name: "policyHash", type: "bytes32" },
+          { name: "inputHash", type: "bytes32" },
+          { name: "certificateCommitment", type: "bytes32" },
+          { name: "approved", type: "bool" },
+          { name: "executed", type: "bool" },
+          { name: "cancelled", type: "bool" },
+          { name: "exists", type: "bool" },
+        ],
+      },
+    ],
+  },
 ] as const;
