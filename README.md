@@ -1,5 +1,7 @@
 # ArcTreasury
 
+[![CI](https://github.com/ms1ny-hue/arctreasury/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ms1ny-hue/arctreasury/actions/workflows/ci.yml)
+
 **Settlement-liquidity control plane for stablecoin payment companies, built on Arc.**
 
 ArcTreasury sits between forecasting/data systems and custody/settlement rails as
