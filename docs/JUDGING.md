@@ -31,13 +31,17 @@ SLA-bound weekend payout that a closed bank rail cannot.
   is explained honestly.
 - Savings are computed from the dataset with formulas shown, and are not annualized.
 
-## What is real vs pending at Checkpoint 2
+## What is live on Arc Testnet
 
-- Live now: Arc Testnet block and USDC balance reads; the full deterministic engine; the
-  contract logic and tests; the dashboard and CLI.
-- Pending faucet funding: the live on-chain deployment and a verifiable transaction. The
-  entire write path is wired behind `ChainGateway` and runs once the contract is deployed and
-  a testnet key is funded with Arc USDC gas.
+- Contract deployed: `TreasuryPolicyExecutor` at
+  [`0x320EbA17bf997c8D978FA32F1B834b455e299122`](https://testnet.arcscan.app/address/0x320EbA17bf997c8D978FA32F1B834b455e299122).
+- A full governed lifecycle executed on-chain (register, approve, execute). Verifiable execute
+  transaction:
+  [`0x11532a1057344fb83beadccef522cb944f47f36e5952196276d52fba69ce5090`](https://testnet.arcscan.app/tx/0x11532a1057344fb83beadccef522cb944f47f36e5952196276d52fba69ce5090).
+- The private Settlement Coverage Certificate verifies `true` against the `bytes32` committed
+  on-chain. All hashes and transactions are in `packages/contracts/deployments/arc-testnet.json`.
+- Also live: Arc Testnet block and USDC balance reads, the full deterministic engine, the
+  contract test suite, the dashboard, and the CLI.
 
 ## The signature primitive
 

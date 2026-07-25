@@ -169,12 +169,19 @@ pnpm contracts:deploy
 - All network-specific values (chain id, RPC, USDC and other contract addresses, explorer,
   faucet) live in typed configuration sourced from the official Arc docs, not invented.
 
-**Wired, pending faucet funding for the live write:**
+**Deployed and executed live on Arc Testnet (2026-07-25):**
 
-- `TreasuryPolicyExecutor.sol` is compiled and fully tested (17/17). Deployment is a single
-  `pnpm contracts:deploy` gated only on funding a testnet key with Arc USDC gas.
-- The real execution path (register, human approve, simulate, submit, receipt, explorer link,
-  certificate-commitment verification) is implemented behind `ChainGateway`.
+- `TreasuryPolicyExecutor` deployed at
+  [`0x320EbA17bf997c8D978FA32F1B834b455e299122`](https://testnet.arcscan.app/address/0x320EbA17bf997c8D978FA32F1B834b455e299122).
+- A full governed lifecycle ran on-chain: register, human approve, and execute. The execute
+  transaction moved USDC through the executor to the allowlisted vault:
+  [`0x11532a1057344fb83beadccef522cb944f47f36e5952196276d52fba69ce5090`](https://testnet.arcscan.app/tx/0x11532a1057344fb83beadccef522cb944f47f36e5952196276d52fba69ce5090)
+  (block 53619482).
+- The private Settlement Coverage Certificate hashes (SHA-256) to the exact `bytes32`
+  committed on-chain (`0x94477e06...1d4cfa82`), verified `true` after execution. Coverage is
+  proven without publishing any treasury data.
+- Full evidence, including every transaction hash and the ABI, is in
+  `packages/contracts/deployments/arc-testnet.json`.
 
 **Circle tooling:** Arc USDC as the settlement asset and native gas token; Circle faucet for
 testnet USDC. CCTP (`TokenMessengerV2`) and Gateway addresses are captured in config as a P1
@@ -185,9 +192,10 @@ funding rail. No permissioned products (StableFX, USYC, Circle Payments Network)
 | Component | Status |
 |-----------|--------|
 | Arc Testnet block + USDC balance reads | **Live** |
+| Smart contract deployed to Arc Testnet | **Live** (`0x320EbA17...e299122`) |
+| On-chain register / approve / execute + explorer receipts | **Live** (execute tx `0x11532a10...69ce5090`) |
+| Certificate commitment verified against on-chain `bytes32` | **Live** (matches `true`) |
 | Forecast, policy, optimizer, verifier, certificate, shadow-mode | Real code, **simulated** Northstar dataset |
-| Smart contract logic + tests | Real, **not yet deployed** (pending faucet) |
-| On-chain execution + explorer receipt | Wired; runs live once the contract is deployed and a key is funded |
 | Runtime AI explanations, MCP server, CCTP funding | Planned P1, not built yet |
 
 ## Safety model

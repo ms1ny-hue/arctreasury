@@ -42,6 +42,18 @@ export default async function Dashboard() {
           </div>
         </section>
 
+        {/* Live deployment */}
+        <section className="card">
+          <h2>Live Arc Deployment</h2>
+          <p className="sub">A full governed lifecycle executed on Arc Testnet: register, human approve, execute. USDC moved through the executor to the allowlisted vault.</p>
+          <div className="grid">
+            <div className="stat"><div className="l">TreasuryPolicyExecutor</div><div className="v small"><a href={m.deployment.addressUrl} target="_blank" rel="noreferrer">{m.deployment.address}</a></div></div>
+            <div className="stat"><div className="l">Execute tx (block {m.deployment.executeBlock})</div><div className="v small"><a href={m.deployment.executeTxUrl} target="_blank" rel="noreferrer">{m.deployment.executeTx.slice(0, 18)}…</a></div></div>
+            <div className="stat"><div className="l">Certificate vs on-chain commitment</div><div className="v">{m.deployment.verified ? <span className="ok">verified</span> : <span className="bad">mismatch</span>}</div></div>
+          </div>
+          <div className="callout good">On-chain <span className="mono">certificateCommitmentOf</span> equals the private certificate's SHA-256 ({m.deployment.commitment.slice(0, 18)}…). Coverage proven without publishing treasury data.</div>
+        </section>
+
         {/* Forecast */}
         <section className="card">
           <h2>48-Hour Operational Forecast — EU Settlement Wallet</h2>

@@ -17,6 +17,7 @@ import {
   ADDR,
 } from "@arctreasury/domain";
 import { ArcTestnetGateway } from "@arctreasury/chain";
+import deployment from "../../../packages/contracts/deployments/arc-testnet.json";
 
 export interface DashboardModel {
   asOf: string;
@@ -51,6 +52,15 @@ export interface DashboardModel {
   shadow: { capitalReleased: string; reductionPct: string; avoidedShortfalls: number; metrics: { name: string; arc: string; base: string; unit: string }[] };
   blocked: { amount: string; verifierPassed: boolean; policyApprovable: boolean };
   proposal: { state: string; approver: string; lifecycle: string[] };
+  deployment: {
+    address: string;
+    addressUrl: string;
+    executeTx: string;
+    executeTxUrl: string;
+    executeBlock: number;
+    commitment: string;
+    verified: boolean;
+  };
 }
 
 export async function buildDashboardModel(): Promise<DashboardModel> {
@@ -127,5 +137,14 @@ export async function buildDashboardModel(): Promise<DashboardModel> {
     },
     blocked: { amount: fmt(unsafe.amount), verifierPassed: unsafeVerify.passed, policyApprovable: unsafePolicy.approvable },
     proposal: { state: proposal.state, approver: proposal.approval?.approver ?? "-", lifecycle: proposal.audit.map((a) => a.kind) },
+    deployment: {
+      address: deployment.address,
+      addressUrl: deployment.explorer,
+      executeTx: deployment.transactions.executeProposal,
+      executeTxUrl: `https://testnet.arcscan.app/tx/${deployment.transactions.executeProposal}`,
+      executeBlock: deployment.proof.executeBlock,
+      commitment: deployment.certificateCommitment,
+      verified: deployment.proof.onchainCertificateCommitmentMatchesPrivateCertificate,
+    },
   };
 }

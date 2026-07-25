@@ -1,0 +1,29 @@
+{
+  "network": "arc-testnet",
+  "chainId": 5042002,
+  "contract": "TreasuryPolicyExecutor",
+  "address": "0x320EbA17bf997c8D978FA32F1B834b455e299122",
+  "usdc": "0x3600000000000000000000000000000000000000",
+  "vault": "0xDEd1EFf0590903C82CE66F823f8317174E312f75",
+  "maxSingleAmount": "3000000000000",
+  "explorer": "https://testnet.arcscan.app/address/0x320EbA17bf997c8D978FA32F1B834b455e299122",
+  "abiFile": "TreasuryPolicyExecutor.abi.json",
+  "deployedAt": "2026-07-25",
+  "certificateCommitment": "0x94477e063b610788f14f876131ce9ea62593068106e4090a88b590821d4cfa82",
+  "transactions": {
+    "deploy": "0x53ebccbd194437c55a82060d7881459ded449f21ccef4c4f4f677b63a0d8df12",
+    "setTokenAllowed": "0x87ed30d24f6e08b8aa8ba719eca18eaf5d1de9d82cf7b08394ff08428a4bd525",
+    "setDestinationAllowed": "0x47655f97f3de1991110ad64a910d66c827fcb9e77c6855722e132fe800ecce1f",
+    "registerProposal": "0x53a66ba6355946aad47685a468e16ffd1489756a612942a421098614f0e614ed",
+    "approveProposal": "0x4094c932a12ef9494bbe471fb5d36e3a9352342cc77d01ab02bb711af4b1d3a5",
+    "executeProposal": "0x11532a1057344fb83beadccef522cb944f47f36e5952196276d52fba69ce5090"
+  },
+  "proof": {
+    "proposalId": "0x8d5191cb4193240465eebd5cdc1dd2c5ba2be618c3ea73dec2366f3c54a7a1ae",
+    "executeBlock": 53619482,
+    "onchainCertificateCommitmentMatchesPrivateCertificate": true,
+    "isExecuted": true,
+    "settledAmountUsdc": "1.000000",
+    "note": "The Settlement Coverage Certificate built off-chain hashes (SHA-256) to the exact bytes32 committed on-chain, verifying coverage without revealing treasury data. On-chain settlement is a scaled 1 USDC demo transfer; the decision amount in the certificate is 2,010,000 USDC."
+  }
+}
