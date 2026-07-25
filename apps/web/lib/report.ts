@@ -17,6 +17,7 @@ import {
   ADDR,
 } from "@arctreasury/domain";
 import { ArcTestnetGateway } from "@arctreasury/chain";
+import { buildExplainContext, explainRecommendation } from "@arctreasury/ai";
 import deployment from "../../../packages/contracts/deployments/arc-testnet.json";
 
 export interface DashboardModel {
@@ -52,6 +53,7 @@ export interface DashboardModel {
   shadow: { capitalReleased: string; reductionPct: string; avoidedShortfalls: number; metrics: { name: string; arc: string; base: string; unit: string }[] };
   blocked: { amount: string; verifierPassed: boolean; policyApprovable: boolean };
   proposal: { state: string; approver: string; lifecycle: string[] };
+  ai: { source: string; model: string | null; headline: string; whatToDo: string; bindingConstraint: string; consequenceOfInaction: string; disclaimer: string };
   deployment: {
     address: string;
     addressUrl: string;
@@ -93,6 +95,8 @@ export async function buildDashboardModel(): Promise<DashboardModel> {
 
   let proposal = createProposal(rec, policyEval, verification, simulationHash, data.asOf, data.policy.thresholds.proposalTtlSeconds);
   proposal = approveProposal(proposal, ADDR.poolUs, data.asOf + 60, proposal.boundHashes, "0xhuman_sig");
+
+  const explained = await explainRecommendation(buildExplainContext(data, rec, policyEval, cert));
 
   return {
     asOf: humanUtc(data.asOf),
@@ -137,6 +141,15 @@ export async function buildDashboardModel(): Promise<DashboardModel> {
     },
     blocked: { amount: fmt(unsafe.amount), verifierPassed: unsafeVerify.passed, policyApprovable: unsafePolicy.approvable },
     proposal: { state: proposal.state, approver: proposal.approval?.approver ?? "-", lifecycle: proposal.audit.map((a) => a.kind) },
+    ai: {
+      source: explained.source,
+      model: explained.model ?? null,
+      headline: explained.explanation.headline,
+      whatToDo: explained.explanation.whatToDo,
+      bindingConstraint: explained.explanation.bindingConstraint,
+      consequenceOfInaction: explained.explanation.consequenceOfInaction,
+      disclaimer: explained.disclaimer,
+    },
     deployment: {
       address: deployment.address,
       addressUrl: deployment.explorer,

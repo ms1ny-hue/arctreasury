@@ -33,6 +33,7 @@ import {
   type LiquidityAction,
 } from "@arctreasury/domain";
 import { DemoGateway, ArcTestnetGateway, type ApprovedExecutionInput } from "@arctreasury/chain";
+import { buildExplainContext, explainRecommendation } from "@arctreasury/ai";
 import { explorerTx } from "@arctreasury/config";
 
 const line = (s = "") => console.log(s);
@@ -122,8 +123,17 @@ async function main() {
   for (const m of shadow.metrics) kv(m.name, `Arc ${m.arctreasury}  |  baseline ${m.baseline} ${m.unit}`);
   line(`   ${shadow.disclaimer}`);
 
+  // --- 6b. Runtime AI explanation (deterministic fallback when no key) ---
+  h(7, "Explanation (AI analyst; deterministic fallback if no key)");
+  const explainCtx = buildExplainContext(data, rec, policyEval, cert);
+  const explained = await explainRecommendation(explainCtx);
+  kv("Source", explained.source === "claude" ? `Claude (${explained.model})` : "deterministic fallback (no ANTHROPIC_API_KEY)");
+  line(`   ${explained.explanation.headline}`);
+  line(`   What to do: ${explained.explanation.whatToDo}`);
+  line(`   ${explained.disclaimer}`);
+
   // --- 8. Prove an unsafe action is BLOCKED ---
-  h(7, "Safety gate: an unsafe larger release is blocked");
+  h(8, "Safety gate: an unsafe larger release is blocked");
   const unsafe: LiquidityAction = { kind: "release", sourcePoolId: "pool-us", destPoolId: "pool-eu", railId: "rail-arc-internal", amount: fromDecimalString("3500000") };
   const unsafeVerify = verifyAction(data, unsafe);
   const unsafePolicy = evaluatePolicy(data, unsafe);

@@ -10,7 +10,8 @@
   "dependencies": {
     "@arctreasury/domain": "workspace:*",
     "@arctreasury/chain": "workspace:*",
-    "@arctreasury/config": "workspace:*"
+    "@arctreasury/config": "workspace:*",
+    "@arctreasury/ai": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.6.3",

@@ -197,7 +197,8 @@ funding rail. No permissioned products (StableFX, USYC, Circle Payments Network)
 | Certificate commitment verified against on-chain `bytes32` | **Live** (matches `true`) |
 | Forecast, policy, optimizer, verifier, certificate, shadow-mode | Real code, **simulated** Northstar dataset |
 | Read/propose-only MCP server | **Live** (`apps/mcp`, 11 tools, no approve/sign/execute) |
-| Runtime AI explanations, CCTP funding | Planned P1, not built yet |
+| Runtime AI explanations | **Live** (`packages/ai`, schema-constrained Claude + deterministic fallback) |
+| CCTP funding rail | Planned P1, not built yet |
 
 ## Safety model
 
