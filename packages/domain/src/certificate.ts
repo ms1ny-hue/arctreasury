@@ -26,7 +26,7 @@ export function buildCertificate(
   policyEval: PolicyEvaluation,
   simulationHash: string
 ): SettlementCoverageCertificate {
-  const transfers = actionToTransfers(rec.action, data.asOf);
+  const transfers = actionToTransfers(data, rec.action);
   const baseRun = runForecast(data, { scenario: "base", horizonHours: 48, stepSeconds: 3600, extraTransfers: transfers });
   const downRun = runForecast(data, { scenario: "downside", horizonHours: 48, stepSeconds: 3600, extraTransfers: transfers });
   const preRun = runForecast(data, { scenario: "downside", horizonHours: 48, stepSeconds: 3600 });

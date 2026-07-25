@@ -2,7 +2,9 @@
 
 [![CI](https://github.com/ms1ny-hue/arctreasury/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ms1ny-hue/arctreasury/actions/workflows/ci.yml)
 
-**Settlement-liquidity control plane for stablecoin payment companies, built on Arc.**
+**Settlement-liquidity assurance for stablecoin payment companies, built on Arc.**
+
+*Know whether every critical payout is covered before settlement time.*
 
 **Live dashboard: https://web-one-mauve-12.vercel.app** &nbsp;·&nbsp; Contract: [`0x320EbA17…e299122`](https://testnet.arcscan.app/address/0x320EbA17bf997c8D978FA32F1B834b455e299122) &nbsp;·&nbsp; [Execute tx](https://testnet.arcscan.app/tx/0x11532a1057344fb83beadccef522cb944f47f36e5952196276d52fba69ce5090)
 
@@ -46,10 +48,18 @@ how much liquidity each settlement wallet or corridor needs, move only what is
 necessary, and produce evidence that every customer and merchant obligation stays
 covered.
 
-The signature output is not a chart or an AI paragraph. It is a machine-verifiable
-**Settlement Coverage Certificate** for a proposed liquidity action, whose opaque
-commitment is published on Arc so anyone can prove the private certificate matches
-its on-chain commitment without revealing any treasury data.
+The signature output is a **Settlement Coverage Certificate**: a deterministically
+verified, tamper-evident evidence bundle for a proposed liquidity action, whose
+SHA-256 integrity commitment is anchored on Arc. Anyone holding the private bundle
+can confirm it is unchanged since commitment, without revealing any treasury data.
+
+**What the on-chain commitment does and does not establish.** It establishes
+tamper-evidence (the evidence has not changed since it was committed) and that the
+approval and execution controls in the contract were satisfied. It does **not**
+prove the truth of the private balances, obligations, or the coverage calculation
+itself; that is verified deterministically off-chain by an independent verifier.
+We therefore call it an attestation and integrity commitment, not a cryptographic
+proof of coverage.
 
 ## Why Arc, why stablecoins
 
@@ -183,7 +193,7 @@ pnpm contracts:deploy
   (block 53619482).
 - The private Settlement Coverage Certificate hashes (SHA-256) to the exact `bytes32`
   committed on-chain (`0x94477e06...1d4cfa82`), verified `true` after execution. Coverage is
-  proven without publishing any treasury data.
+  anchored on Arc without publishing any treasury data (tamper-evidence, not proof of input truth).
 - Full evidence, including every transaction hash and the ABI, is in
   `packages/contracts/deployments/arc-testnet.json`.
 

@@ -23,15 +23,15 @@ export default async function Dashboard() {
       <div className="shell">
         {/* HERO */}
         <header className="hero">
-          <span className="eyebrow">Treasury platform for stablecoin businesses · built on Arc</span>
+          <span className="eyebrow">Settlement-liquidity assurance · built on Arc</span>
           <h1>
-            Treasury, bills, and cash in one place. <span className="grad">Settled in USDC on Arc.</span>
+            Know whether every critical payout is <span className="grad">covered — before settlement time.</span>
           </h1>
           <p className="lede">
-            ArcTreasury puts your finance team&apos;s rules around every dollar — <b>who approves, how much, and
-            when money moves</b> — sizes the funding each settlement wallet needs before cutoffs, and pays counterparties
-            across corridors. The settlement-funding engine is live and proven on-chain today; cross-currency payouts and
-            idle-USDC sweeps are next. AI analyzes and prepares; a human approves; policy executes.
+            For payment companies running 24/7 stablecoin flows. ArcTreasury forecasts stressed liquidity, recommends the
+            <b> smallest safe funding action</b>, independently verifies that funds actually <b>arrive before each
+            obligation&apos;s deadline</b>, and requires human approval before USDC moves on Arc. <b>AI explains; deterministic
+            code decides; a human approves.</b>
           </p>
           <div className="badges">
             <span className="badge on">Live on Arc Testnet</span>
@@ -64,42 +64,23 @@ export default async function Dashboard() {
           </div>
           <div className="band-card">
             <div className="band-ico c">✓</div>
-            <h3>Proof an approver can trust</h3>
-            <p>A Settlement Coverage Certificate whose opaque hash is published on Arc: coverage is provable without exposing balances, corridors, or payout schedules.</p>
+            <h3>Evidence an approver can trust</h3>
+            <p>A tamper-evident coverage attestation whose integrity commitment is anchored on Arc. It proves the evidence has not changed since commitment, without publishing balances, corridors, or payout schedules.</p>
           </div>
         </div>
 
-        {/* PLATFORM MODULES */}
+        {/* PIPELINE */}
         <div className="mods-h">
-          <span className="t">One platform for stablecoin treasury</span>
-          <span className="s">Built and live · what&apos;s next</span>
+          <span className="t">How it works</span>
+          <span className="s">One decision loop, controls at every step</span>
         </div>
         <div className="mods">
-          <div className="mod">
-            <div className="mh"><span className="ico">◇</span><span className="tag live">Live</span></div>
-            <h4>Settlement funding</h4>
-            <p>Size the exact USDC each wallet needs before cutoffs; move only that, proven on-chain.</p>
-          </div>
-          <div className="mod">
-            <div className="mh"><span className="ico">◇</span><span className="tag live">Live</span></div>
-            <h4>Payment rules &amp; approvals</h4>
-            <p>Who signs off, spending limits, and when money moves — deterministic, versioned policy.</p>
-          </div>
-          <div className="mod">
-            <div className="mh"><span className="ico">◇</span><span className="tag live">Live</span></div>
-            <h4>Cash &amp; obligations</h4>
-            <p>One 48-hour and 14-day view of balances, receivables, and payouts across corridors.</p>
-          </div>
-          <div className="mod">
-            <div className="mh"><span className="ico">◇</span><span className="tag road">Roadmap</span></div>
-            <h4>Cross-currency payouts</h4>
-            <p>Pay counterparties in local currency, settle in USDC — FX handled at the rail.</p>
-          </div>
-          <div className="mod">
-            <div className="mh"><span className="ico">◇</span><span className="tag road">Roadmap</span></div>
-            <h4>Idle-USDC sweeps</h4>
-            <p>Move spare USDC into approved instruments under the same policy and approval controls.</p>
-          </div>
+          <div className="mod"><div className="mh"><span className="ico">1</span><span className="tag live">Live</span></div><h4>Detect</h4><p>Forecast stressed liquidity per wallet; surface the earliest projected shortfall and its deadline.</p></div>
+          <div className="mod"><div className="mh"><span className="ico">2</span><span className="tag live">Live</span></div><h4>Recommend</h4><p>The smallest policy-compliant funding action, sized to arrive before the obligation.</p></div>
+          <div className="mod"><div className="mh"><span className="ico">3</span><span className="tag live">Live</span></div><h4>Verify</h4><p>An independent recompute of coverage and arrival timing that trusts none of the above.</p></div>
+          <div className="mod"><div className="mh"><span className="ico">4</span><span className="tag live">Live</span></div><h4>Approve</h4><p>A human reviews binding constraints and the consequence of inaction, then approves.</p></div>
+          <div className="mod"><div className="mh"><span className="ico">5</span><span className="tag live">Live</span></div><h4>Settle</h4><p>An allowlisted USDC movement executes through the policy contract on Arc.</p></div>
+          <div className="mod"><div className="mh"><span className="ico">6</span><span className="tag live">Live</span></div><h4>Audit</h4><p>A tamper-evident evidence bundle with an integrity commitment anchored on Arc.</p></div>
         </div>
 
         {/* KPI proof */}
@@ -123,7 +104,7 @@ export default async function Dashboard() {
           <p className="sub">
             Not a screenshot and not hardcoded: on every request the server calls the Arc Testnet RPC and reads the
             deployed executor&apos;s storage — the proposal it holds, whether it executed, and the certificate hash it
-            committed. The treasury figures below are simulated; this connection is not.
+            committed. The treasury figures below are simulated; this Arc connection is not.
           </p>
           <p className="readline">
             RPC <b>{m.live.reachable ? "connected" : "unreachable"}</b> · {m.live.rpc} · read at {m.live.readAt} · latest block {m.live.block}
@@ -137,7 +118,7 @@ export default async function Dashboard() {
             <div className="stat"><div className="l">Certificate hash matches on-chain</div><div className="v">{m.live.matchesPrivateCert === null ? "—" : m.live.matchesPrivateCert ? <span className="good">verified ✓</span> : <span className="hot">mismatch</span>}</div></div>
           </div>
           <div className="callout good">
-            The private Settlement Coverage Certificate&apos;s SHA-256 (<span className="mono">{m.deployment.commitment.slice(0, 22)}…</span>) equals the <span className="mono">bytes32</span> the contract holds — read live above. Coverage is provable on-chain without publishing any treasury data.
+            The private Settlement Coverage Certificate&apos;s SHA-256 (<span className="mono">{m.deployment.commitment.slice(0, 22)}…</span>) equals the <span className="mono">bytes32</span> the contract holds, read live above. This anchors the evidence&apos;s integrity on Arc: it attests the record is unchanged since commitment, not the truth of the private inputs.
           </div>
         </section>
 
@@ -149,7 +130,7 @@ export default async function Dashboard() {
           <div className="grid">
             <div className="stat"><div className="l">Authoritative amount</div><div className="v big">{m.recommendation.amount}</div></div>
             <div className="stat"><div className="l">Max safe amount</div><div className="v">{m.recommendation.maxSafe}</div></div>
-            <div className="stat"><div className="l">Optimizer status</div><div className="v good">{m.recommendation.status}</div></div>
+            <div className="stat"><div className="l">Sizing method</div><div className="v good">analytically minimal · single route</div></div>
             <div className="stat"><div className="l">Latest safe execution</div><div className="v small">{m.recommendation.latestSafe}</div></div>
           </div>
           <div className="callout warn"><strong>Binding constraint:</strong> {m.recommendation.binding}</div>
@@ -221,7 +202,7 @@ export default async function Dashboard() {
         <section className="card">
           <div className="card-eyebrow">Signature primitive<span className="prov sim">Simulated data</span><span className="prov chain">Hash on-chain</span></div>
           <h2>Settlement Coverage Certificate</h2>
-          <p className="sub">Machine-verifiable proof the action keeps every mandatory obligation covered. Only the opaque commitment goes on-chain.</p>
+          <p className="sub">Deterministically verified off-chain; a tamper-evident attestation whose SHA-256 integrity commitment is anchored on Arc. It proves the evidence is unchanged since commitment, not the truth of private inputs.</p>
           <div className="grid">
             <div className="stat"><div className="l">Certificate ID</div><div className="v small">{m.certificate.id}</div></div>
             <div className="stat"><div className="l">Base-case coverage</div><div className="v good">{m.certificate.baseCoverage}</div></div>

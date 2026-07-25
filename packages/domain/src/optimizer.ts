@@ -154,11 +154,30 @@ function consequence(
   return `Without action, ${destLabel} breaches its stressed reserve by ${fmt(topUp)} at ${when}, risking late or failed weekend contractor payouts.`;
 }
 
-/** Movement objects that model a proposed action's effect on the forecast. */
-export function actionToTransfers(action: LiquidityAction, asOf: Epoch): Movement[] {
+/**
+ * Resolve when a transfer's funds actually arrive at the destination. The
+ * source is debited at initiation; the destination is credited only at the
+ * rail's CONSERVATIVE completion time. Money in transit is not yet available.
+ */
+export function resolveArrival(
+  data: TreasuryScenarioData,
+  action: LiquidityAction
+): { conservativeSec: number; arrivalAt: Epoch; railId: string; hasRail: boolean } {
+  const rail = data.rails.find((r) => r.id === action.railId);
+  const conservativeSec = rail ? rail.conservativeCompletionSec : 0;
+  return { conservativeSec, arrivalAt: data.asOf + conservativeSec, railId: action.railId, hasRail: !!rail };
+}
+
+/**
+ * Movement objects that model a proposed action's effect on the forecast with
+ * settlement-aware timing: the source is debited now, the destination is
+ * credited only when the funds conservatively arrive.
+ */
+export function actionToTransfers(data: TreasuryScenarioData, action: LiquidityAction): Movement[] {
+  const { arrivalAt } = resolveArrival(data, action);
   const out = { ...action.amount, amount: -action.amount.amount };
   return [
-    { at: asOf, poolId: action.sourcePoolId, delta: out },
-    { at: asOf, poolId: action.destPoolId, delta: action.amount },
+    { at: data.asOf, poolId: action.sourcePoolId, delta: out },
+    { at: arrivalAt, poolId: action.destPoolId, delta: action.amount },
   ];
 }

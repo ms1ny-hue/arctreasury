@@ -87,7 +87,7 @@ export function evaluatePolicy(
     scenario: "downside",
     horizonHours: 48,
     stepSeconds: 3600,
-    extraTransfers: actionToTransfers(action, data.asOf),
+    extraTransfers: actionToTransfers(data, action),
   });
   const destSeries = seriesFor(post, action.destPoolId);
   const coverageOk = cmp(destSeries.minBalance, destPool!.stressedReserve) >= 0;

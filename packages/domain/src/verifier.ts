@@ -2,7 +2,7 @@ import { cmp, isNeg } from "./money.js";
 import type { Money } from "./money.js";
 import { hashValue } from "./hash.js";
 import { runForecast, seriesFor } from "./forecast.js";
-import { actionToTransfers } from "./optimizer.js";
+import { actionToTransfers, resolveArrival } from "./optimizer.js";
 import type { LiquidityAction, TreasuryScenarioData } from "./entities.js";
 import { fmt } from "./util.js";
 
@@ -86,8 +86,27 @@ export function verifyAction(
     rail ? `rail ${rail.id}` : "no rail"
   );
 
-  // Coverage: apply the transfer and re-run the downside forecast for BOTH pools.
-  const transfers = actionToTransfers(action, data.asOf);
+  // Settlement timing: the destination is credited only when funds conservatively
+  // arrive. Independently reconstruct that arrival and the no-action breach time,
+  // and require the money to land BEFORE the destination first breaches — a
+  // nominally sufficient amount that arrives too late is unsafe.
+  const arrival = resolveArrival(data, action);
+  const arrivalSec = arrival.arrivalAt - data.asOf;
+  const noAction = seriesFor(
+    runForecast(data, { scenario: "downside", horizonHours: 48, stepSeconds: 3600 }),
+    action.destPoolId
+  );
+  const breachSec = noAction.timeToShortfallSec;
+  push(
+    "arrival_before_deadline",
+    breachSec === null ? true : arrivalSec <= breachSec,
+    breachSec === null
+      ? "no breach in horizon"
+      : `funds arrive +${Math.round(arrivalSec / 60)}min vs breach +${Math.round(breachSec / 60)}min (rail ${arrival.railId})`
+  );
+
+  // Coverage: apply the TIMED transfer and re-run the downside forecast for BOTH pools.
+  const transfers = actionToTransfers(data, action);
   const post = runForecast(data, {
     scenario: "downside",
     horizonHours: 48,
