@@ -53,3 +53,38 @@ export interface ChainGateway {
   submitApprovedProposal(input: ApprovedExecutionInput): Promise<SubmittedTx>;
   waitForReceipt(hash: Hash): Promise<ExecutionReceipt>;
 }
+
+/**
+ * FundingGateway — a treasury-funding rail (e.g. CCTP) that tops up an Arc
+ * wallet from another chain. This is P1 and NOT the primary product: it feeds
+ * liquidity in; the decision engine and ChainGateway do the governed movement.
+ */
+export interface FundingQuoteInput {
+  sourceChain: string;
+  destChain: string;
+  amount: Money;
+}
+export interface FundingQuote {
+  amount: Money;
+  feeBps: number;
+  estimatedCompletionSec: number;
+  finality: string;
+  route: string;
+  live: boolean;
+  note: string;
+}
+export interface ApprovedFundingInput extends FundingQuoteInput {
+  approver: string;
+  proposalId: Hash;
+}
+export interface FundingTransfer {
+  status: "planned" | "demo_settled" | "requires_source_funds" | "burned" | "attested" | "minted" | "failed";
+  sourceTxHash?: Hash;
+  attestation?: string;
+  destTxHash?: Hash;
+  note: string;
+}
+export interface FundingGateway {
+  quote(input: FundingQuoteInput): Promise<FundingQuote>;
+  bridge(input: ApprovedFundingInput): Promise<FundingTransfer>;
+}
