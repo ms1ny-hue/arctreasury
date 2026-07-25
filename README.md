@@ -6,7 +6,7 @@
 
 *Know whether every critical payout is covered before settlement time.*
 
-**Live dashboard: https://web-one-mauve-12.vercel.app** &nbsp;·&nbsp; Contract: [`0x320EbA17…e299122`](https://testnet.arcscan.app/address/0x320EbA17bf997c8D978FA32F1B834b455e299122) &nbsp;·&nbsp; [Execute tx](https://testnet.arcscan.app/tx/0x11532a1057344fb83beadccef522cb944f47f36e5952196276d52fba69ce5090)
+**Live dashboard: https://web-one-mauve-12.vercel.app** &nbsp;·&nbsp; Contract: [`0xC43D3b40…B882B86`](https://testnet.arcscan.app/address/0xC43D3b4069B9Bd19C6E24e293aE81E79bB882B86) &nbsp;·&nbsp; [Execute tx](https://testnet.arcscan.app/tx/0x086fb732a9e87f654c3cdf9da3a78b13e9afd38bcbc68246eb8cf47a25265457)
 
 ArcTreasury sits between forecasting/data systems and custody/settlement rails as
 the decisioning and orchestration layer for stablecoin settlement liquidity. It
@@ -186,11 +186,11 @@ pnpm contracts:deploy
 **Deployed and executed live on Arc Testnet (2026-07-25):**
 
 - `TreasuryPolicyExecutor` deployed at
-  [`0x320EbA17bf997c8D978FA32F1B834b455e299122`](https://testnet.arcscan.app/address/0x320EbA17bf997c8D978FA32F1B834b455e299122).
+  [`0xC43D3b4069B9Bd19C6E24e293aE81E79bB882B86`](https://testnet.arcscan.app/address/0xC43D3b4069B9Bd19C6E24e293aE81E79bB882B86).
 - A full governed lifecycle ran on-chain: register, human approve, and execute. The execute
   transaction moved USDC through the executor to the allowlisted vault:
-  [`0x11532a1057344fb83beadccef522cb944f47f36e5952196276d52fba69ce5090`](https://testnet.arcscan.app/tx/0x11532a1057344fb83beadccef522cb944f47f36e5952196276d52fba69ce5090)
-  (block 53619482).
+  [`0x086fb732a9e87f654c3cdf9da3a78b13e9afd38bcbc68246eb8cf47a25265457`](https://testnet.arcscan.app/tx/0x086fb732a9e87f654c3cdf9da3a78b13e9afd38bcbc68246eb8cf47a25265457)
+  (block 53656463).
 - The private Settlement Coverage Certificate hashes (SHA-256) to the exact `bytes32`
   committed on-chain (`0x94477e06...1d4cfa82`), verified `true` after execution. Coverage is
   anchored on Arc without publishing any treasury data (tamper-evidence, not proof of input truth).
