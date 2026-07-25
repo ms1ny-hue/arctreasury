@@ -23,19 +23,19 @@ export default async function Dashboard() {
       <div className="shell">
         {/* HERO */}
         <header className="hero">
-          <span className="eyebrow">Settlement liquidity control plane · built on Arc</span>
+          <span className="eyebrow">Treasury platform for stablecoin businesses · built on Arc</span>
           <h1>
-            Fund the <span className="grad">smallest safe amount</span>. Prove every payout stays covered.
+            Treasury, bills, and cash in one place. <span className="grad">Settled in USDC on Arc.</span>
           </h1>
           <p className="lede">
-            Cross-border payment companies trap millions in idle prefunding, or miss an SLA-bound payout when a
-            receivable slips. ArcTreasury sizes the exact USDC each settlement wallet needs before cutoffs and
-            weekends, moves only that, and issues a machine-verifiable coverage certificate. <b>AI analyzes and
-            prepares; a human approves; deterministic policy executes on Arc.</b>
+            ArcTreasury puts your finance team&apos;s rules around every dollar — <b>who approves, how much, and
+            when money moves</b> — sizes the funding each settlement wallet needs before cutoffs, and pays counterparties
+            across corridors. The settlement-funding engine is live and proven on-chain today; cross-currency payouts and
+            idle-USDC sweeps are next. AI analyzes and prepares; a human approves; policy executes.
           </p>
           <div className="badges">
             <span className="badge on">Live on Arc Testnet</span>
-            <span className="badge">Simulated treasury data</span>
+            <span className="badge">Human approval</span>
             <span className="badge">Non-custodial</span>
           </div>
 
@@ -66,6 +66,39 @@ export default async function Dashboard() {
             <div className="band-ico c">✓</div>
             <h3>Proof an approver can trust</h3>
             <p>A Settlement Coverage Certificate whose opaque hash is published on Arc: coverage is provable without exposing balances, corridors, or payout schedules.</p>
+          </div>
+        </div>
+
+        {/* PLATFORM MODULES */}
+        <div className="mods-h">
+          <span className="t">One platform for stablecoin treasury</span>
+          <span className="s">Built and live · what&apos;s next</span>
+        </div>
+        <div className="mods">
+          <div className="mod">
+            <div className="mh"><span className="ico">◇</span><span className="tag live">Live</span></div>
+            <h4>Settlement funding</h4>
+            <p>Size the exact USDC each wallet needs before cutoffs; move only that, proven on-chain.</p>
+          </div>
+          <div className="mod">
+            <div className="mh"><span className="ico">◇</span><span className="tag live">Live</span></div>
+            <h4>Payment rules &amp; approvals</h4>
+            <p>Who signs off, spending limits, and when money moves — deterministic, versioned policy.</p>
+          </div>
+          <div className="mod">
+            <div className="mh"><span className="ico">◇</span><span className="tag live">Live</span></div>
+            <h4>Cash &amp; obligations</h4>
+            <p>One 48-hour and 14-day view of balances, receivables, and payouts across corridors.</p>
+          </div>
+          <div className="mod">
+            <div className="mh"><span className="ico">◇</span><span className="tag road">Roadmap</span></div>
+            <h4>Cross-currency payouts</h4>
+            <p>Pay counterparties in local currency, settle in USDC — FX handled at the rail.</p>
+          </div>
+          <div className="mod">
+            <div className="mh"><span className="ico">◇</span><span className="tag road">Roadmap</span></div>
+            <h4>Idle-USDC sweeps</h4>
+            <p>Move spare USDC into approved instruments under the same policy and approval controls.</p>
           </div>
         </div>
 

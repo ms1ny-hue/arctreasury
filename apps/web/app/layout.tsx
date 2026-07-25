@@ -16,9 +16,9 @@ const mono = IBM_Plex_Mono({
 });
 
 export const metadata = {
-  title: "ArcTreasury — Stablecoin Settlement Liquidity Control Plane",
+  title: "ArcTreasury — Treasury platform for stablecoin businesses",
   description:
-    "Fund the smallest safe amount before cutoffs, and prove every merchant and payout obligation stays covered. Non-custodial decisioning on Arc: AI analyzes, humans approve, deterministic policy executes.",
+    "Treasury, bills, and cash in one place, settled in USDC on Arc. Put your finance team's rules around every dollar — who approves, how much, when money moves — size the funding each wallet needs, and prove coverage on-chain. AI analyzes, humans approve, policy executes.",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

@@ -20,15 +20,18 @@
 
   --grad: linear-gradient(102deg, var(--cyan) 0%, var(--violet) 62%, var(--indigo) 100%);
   --grad-soft: linear-gradient(102deg, rgba(46, 230, 255, 0.16), rgba(155, 140, 255, 0.16));
-  --mono: var(--font-mono), ui-monospace, "SF Mono", Menlo, monospace;
-  --disp: var(--font-display), ui-sans-serif, system-ui, sans-serif;
   --radius: 16px;
 }
 
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
+/* next/font sets --font-display / --font-mono on <body>; alias them HERE (where
+   they exist) so the value resolves. Aliasing at :root would leave them empty
+   and silently fall back to the browser serif default. */
 body {
+  --disp: var(--font-display), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --mono: var(--font-mono), ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
   background: var(--bg);
   color: var(--ink);
   font-family: var(--disp);
@@ -120,6 +123,21 @@ nav.top {
 .band-ico.a { color: var(--rose); box-shadow: inset 0 0 22px rgba(255,111,143,0.15); }
 .band-ico.b { color: var(--cyan); box-shadow: inset 0 0 22px rgba(46,230,255,0.15); }
 .band-ico.c { color: var(--emerald); box-shadow: inset 0 0 22px rgba(53,224,160,0.15); }
+
+/* ---------- platform modules ---------- */
+.mods-h { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-top: 34px; flex-wrap: wrap; }
+.mods-h .t { font-size: clamp(1.2rem, 1rem + 0.8vw, 1.7rem); font-weight: 600; letter-spacing: -0.02em; }
+.mods-h .s { color: var(--muted); font-size: 13.5px; }
+.mods { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top: 16px; }
+.mod { border: 1px solid var(--line); border-radius: 14px; padding: 18px; background: var(--panel); transition: border-color .2s, transform .2s; }
+.mod:hover { border-color: var(--line-2); transform: translateY(-2px); }
+.mod .mh { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.mod .ico { font-family: var(--mono); color: var(--cyan); font-size: 15px; }
+.mod h4 { margin: 12px 0 0; font-size: 15.5px; font-weight: 600; letter-spacing: -0.01em; }
+.mod p { margin: 7px 0 0; color: var(--muted); font-size: 13px; }
+.tag { font-family: var(--mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; padding: 3px 8px; border-radius: 999px; border: 1px solid; white-space: nowrap; }
+.tag.live { color: var(--emerald); border-color: rgba(53,224,160,0.4); background: rgba(53,224,160,0.08); }
+.tag.road { color: var(--faint); border-color: var(--line-2); }
 
 /* ---------- KPI proof strip ---------- */
 .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 16px; }
