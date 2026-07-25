@@ -2,11 +2,8 @@ packages:
   - "packages/*"
   - "apps/*"
 
-# esbuild (vitest/tsx) needs its native binary built.
+# Native post-install builds we explicitly allow (approval mechanism in pnpm 10+).
+# esbuild: vitest/tsx binary. sharp: optional Next.js image binary.
 onlyBuiltDependencies:
   - esbuild
-
-# sharp is an optional Next.js image dependency; skip its build (Next falls back).
-# Acknowledged here so `pnpm install --frozen-lockfile` does not error in CI.
-ignoredBuiltDependencies:
   - sharp

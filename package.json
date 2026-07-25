@@ -4,7 +4,7 @@
   "private": true,
   "description": "Settlement-liquidity control plane for stablecoin payment companies on Arc. Non-custodial decisioning and orchestration. AI analyzes; humans approve; deterministic policy executes.",
   "type": "module",
-  "packageManager": "pnpm@11.1.2",
+  "packageManager": "pnpm@11.17.0",
   "engines": {
     "node": ">=20"
   },
