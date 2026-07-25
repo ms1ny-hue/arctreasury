@@ -196,7 +196,8 @@ funding rail. No permissioned products (StableFX, USYC, Circle Payments Network)
 | On-chain register / approve / execute + explorer receipts | **Live** (execute tx `0x11532a10...69ce5090`) |
 | Certificate commitment verified against on-chain `bytes32` | **Live** (matches `true`) |
 | Forecast, policy, optimizer, verifier, certificate, shadow-mode | Real code, **simulated** Northstar dataset |
-| Runtime AI explanations, MCP server, CCTP funding | Planned P1, not built yet |
+| Read/propose-only MCP server | **Live** (`apps/mcp`, 11 tools, no approve/sign/execute) |
+| Runtime AI explanations, CCTP funding | Planned P1, not built yet |
 
 ## Safety model
 
@@ -216,8 +217,6 @@ counterfactual figures computed from the seed dataset with formulas shown, and a
 
 ## Roadmap
 
-- Deploy the executor to Arc Testnet and record a verifiable transaction and explorer link.
-- Read/propose-only ArcTreasury MCP server.
 - Runtime AI explanations with schema-constrained structured output and a deterministic fallback.
 - CCTP funding flow into Arc Testnet as a treasury top-up rail.
 - Persistent Postgres data model and versioned REST API (OpenAPI 3.1) behind the engine.

@@ -1,0 +1,21 @@
+{
+  "name": "@arctreasury/mcp",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "bin": { "arctreasury-mcp": "./src/server.ts" },
+  "scripts": {
+    "start": "tsx src/server.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@arctreasury/domain": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.13.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "tsx": "^4.23.1",
+    "@types/node": "^22.10.2"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "arctreasury": {
+      "command": "npx",
+      "args": ["-y", "tsx", "apps/mcp/src/server.ts"],
+      "env": {}
+    }
+  }
+}

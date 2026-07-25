@@ -29,6 +29,7 @@ jobs:
       - name: Typecheck config/domain/chain
         run: |
           for p in config domain chain; do (cd packages/$p && ../../node_modules/.bin/tsc --noEmit); done
+          (cd apps/mcp && ../../node_modules/.bin/tsc --noEmit)
       - name: Domain tests
         run: cd packages/domain && ../../node_modules/.bin/vitest run
       - name: Web build
