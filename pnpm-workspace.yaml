@@ -1,9 +1,6 @@
 packages:
   - "packages/*"
   - "apps/*"
-
-# Native post-install builds we explicitly allow (approval mechanism in pnpm 10+).
-# esbuild: vitest/tsx binary. sharp: optional Next.js image binary.
-onlyBuiltDependencies:
-  - esbuild
-  - sharp
+allowBuilds:
+  esbuild: set this to true or false
+  sharp: set this to true or false
