@@ -119,6 +119,30 @@ original settlement.
 
 ---
 
+## API — arbitrary datasets (not a scripted demo)
+
+The engine is a pure function of its input. Submit any payment company's
+settlement position through the ingestion boundary and get its own result.
+
+```bash
+# 1. Fetch the example dataset (the fixture in external format)
+curl -s https://web-one-mauve-12.vercel.app/api/dataset/example > dataset.json
+
+# 2. Edit any field (a balance, an obligation amount, a rail's arrival time),
+#    then run the engine over YOUR dataset — no code change:
+curl -s -X POST https://web-one-mauve-12.vercel.app/api/pipeline \
+  -H 'content-type: application/json' \
+  -d "{\"dataset\": $(cat dataset.json), \"scenario\": \"downside\"}" | jq .recommendation.amount
+```
+
+Changing an obligation changes the required amount; pushing a rail's conservative
+arrival past the shortfall deadline makes the verifier reject the route. Malformed
+input is rejected with field-level errors (HTTP 422). See `apps/web/public/openapi.yaml`
+([live](https://web-one-mauve-12.vercel.app/openapi.yaml)) for the full schema.
+
+Independence: ArcTreasury is an independent hackathon project, not affiliated with
+or endorsed by any sponsor or employer.
+
 ## Setup
 
 Prerequisites: Node 20+, pnpm 11, Foundry.

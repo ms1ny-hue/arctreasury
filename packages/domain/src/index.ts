@@ -10,3 +10,4 @@ export * from "./policy.js";
 export * from "./certificate.js";
 export * from "./shadow.js";
 export * from "./proposal.js";
+export * from "./ingest.js";

@@ -13,6 +13,7 @@ import {
   fmt,
   humanUtc,
   type ScenarioKind,
+  type TreasuryScenarioData,
 } from "@arctreasury/domain";
 import { ARC_TESTNET } from "@arctreasury/config";
 import deployment from "../../../packages/contracts/deployments/arc-testnet.json";
@@ -27,13 +28,23 @@ export type ScenarioChoice = "downside" | "severe" | "base";
  * build a canonical, tamper-evident evidence bundle. The scenario is the only
  * knob a judge changes; every number below is computed, not stored.
  */
-export function computePipeline(scenario: ScenarioChoice = "downside") {
-  const data = northstarScenario();
+export interface PipelineOpts {
+  data?: TreasuryScenarioData;
+  sourcePoolId?: string;
+  destPoolId?: string;
+  dataSource?: string; // provenance label for external datasets
+}
+
+export function computePipeline(scenario: ScenarioChoice = "downside", opts: PipelineOpts = {}) {
+  const data = opts.data ?? northstarScenario();
+  const sourcePoolId = opts.sourcePoolId ?? data.pools[data.pools.length - 1]?.id ?? "pool-us";
+  const destPoolId = opts.destPoolId ?? data.pools[0]?.id ?? "pool-eu";
+  const dataSource = opts.dataSource ?? (opts.data ? "external (API-supplied)" : "northstar fixture");
 
   const fc = runForecast(data, { scenario: scenario as ScenarioKind, horizonHours: 48, stepSeconds: 3600 });
-  const eu = seriesFor(fc, "pool-eu");
+  const eu = seriesFor(fc, destPoolId);
 
-  const rec = recommendRebalance(data, { sourcePoolId: "pool-us", destPoolId: "pool-eu" });
+  const rec = recommendRebalance(data, { sourcePoolId, destPoolId });
   const arrival = resolveArrival(data, rec.action);
   const verification = verifyAction(data, rec.action);
   const policyEval = evaluatePolicy(data, rec.action);
@@ -48,6 +59,7 @@ export function computePipeline(scenario: ScenarioChoice = "downside") {
     asOf: data.asOf,
     asOfHuman: humanUtc(data.asOf),
     dataStatus: data.dataStatus,
+    dataSource,
     account: data.accountId,
     inputSnapshotHash: rec.inputSnapshotHash,
     policyHash: policyEval.resultHash,
@@ -74,6 +86,9 @@ export function computePipeline(scenario: ScenarioChoice = "downside") {
   return {
     scenario,
     asOf: humanUtc(data.asOf),
+    account: data.accountId,
+    dataStatus: data.dataStatus,
+    dataSource,
     forecast: {
       baseVsScenario: scenario,
       minBalance: fmt(eu.minBalance),

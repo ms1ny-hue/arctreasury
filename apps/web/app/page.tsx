@@ -275,7 +275,8 @@ export default async function Dashboard() {
           obligations, and forecasts are synthetic demo data for the fictional company Northstar Pay. ArcTreasury is
           non-custodial decisioning and orchestration software; the smart-contract control perimeter governs only the
           ERC-20 balance it custodies and the permissions defined in it, and has no authority over external bank,
-          custodian, or exchange accounts.
+          custodian, or exchange accounts. ArcTreasury is an independent hackathon project and is not
+          affiliated with, sponsored by, or endorsed by any sponsor or employer.
         </footer>
       </div>
     </>

@@ -1,0 +1,137 @@
+openapi: 3.1.0
+info:
+  title: ArcTreasury API
+  version: "0.3.0"
+  description: >
+    Settlement-liquidity assurance API. Submit an arbitrary payment company's
+    settlement position and receive a forecast, the smallest safe funding
+    recommendation (with settlement-aware arrival timing), an independent
+    verification, and a tamper-evident evidence bundle. Business data is
+    caller-supplied; Arc reads and settlement are real testnet.
+servers:
+  - url: https://web-one-mauve-12.vercel.app
+paths:
+  /api/dataset/example:
+    get:
+      summary: Example dataset in the external ingestion format
+      description: The Northstar sample exported to the input schema. Edit any field and POST it to /api/pipeline.
+      responses:
+        "200": { description: A ScenarioInput document, content: { application/json: { schema: { $ref: "#/components/schemas/ScenarioInput" } } } }
+  /api/pipeline:
+    get:
+      summary: Run the built-in Northstar fixture (demo)
+      parameters:
+        - in: query
+          name: scenario
+          schema: { type: string, enum: [downside, severe, base] }
+      responses:
+        "200": { description: Pipeline result, content: { application/json: { schema: { $ref: "#/components/schemas/PipelineResult" } } } }
+    post:
+      summary: Run the engine over an arbitrary externally-supplied dataset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [dataset]
+              properties:
+                dataset: { $ref: "#/components/schemas/ScenarioInput" }
+                scenario: { type: string, enum: [downside, severe, base] }
+                sourcePoolId: { type: string }
+                destPoolId: { type: string }
+      responses:
+        "200": { description: Pipeline result, content: { application/json: { schema: { $ref: "#/components/schemas/PipelineResult" } } } }
+        "422": { description: Dataset failed schema validation (field-level issues returned) }
+  /api/execute:
+    post:
+      summary: Execute a fresh, scaled settlement on Arc Testnet (register → approve → execute)
+      description: >
+        Server-side testnet signer only. Moves 0.05 USDC through the deployed
+        policy contract to the allowlisted vault; returns the real transaction
+        and on-chain state. Returns a labelled demo result if no signer is configured.
+      responses:
+        "200": { description: Execution result, content: { application/json: { schema: { $ref: "#/components/schemas/ExecuteResult" } } } }
+  /api/verify-evidence:
+    post:
+      summary: Independently verify an evidence bundle's integrity commitment (and on-chain commitment)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [evidence]
+              properties:
+                evidence: { type: object }
+                proposalId: { type: string }
+      responses:
+        "200": { description: Verification result stating what it does and does not establish }
+components:
+  schemas:
+    Money:
+      type: string
+      description: Exact decimal string, up to 6 dp (never a float). e.g. "2010000" or "1250000.50".
+    ScenarioInput:
+      type: object
+      required: [accountId, asOf, dataStatus, pools, corridors, obligations, cashFlows, rails, railWindows, routes, policy]
+      properties:
+        accountId: { type: string }
+        asOf: { type: integer, description: epoch seconds }
+        dataStatus: { type: string, enum: [live, testnet, simulated, demo] }
+        pools:
+          type: array
+          items:
+            type: object
+            required: [id, label, walletAddress, corridorId, balance, operatingReserve, stressedReserve]
+            properties:
+              id: { type: string }
+              label: { type: string }
+              walletAddress: { type: string, pattern: "^0x[a-fA-F0-9]{40}$" }
+              corridorId: { type: string }
+              balance: { $ref: "#/components/schemas/Money" }
+              operatingReserve: { $ref: "#/components/schemas/Money" }
+              stressedReserve: { $ref: "#/components/schemas/Money" }
+        corridors: { type: array, items: { type: object } }
+        obligations:
+          type: array
+          items:
+            type: object
+            required: [id, corridorId, poolId, kind, amount, dueAt, slaAt, mandatory, description]
+            properties:
+              id: { type: string }
+              kind: { type: string, enum: [merchant_settlement, contractor_payout, fee, reserve] }
+              amount: { $ref: "#/components/schemas/Money" }
+              dueAt: { type: integer }
+              mandatory: { type: boolean }
+        cashFlows: { type: array, items: { type: object } }
+        rails:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: string }
+              conservativeCompletionSec: { type: integer, description: used for arrival timing }
+              health: { type: string, enum: [healthy, degraded, down] }
+              maxSize: { $ref: "#/components/schemas/Money" }
+        railWindows: { type: array, items: { type: object } }
+        routes: { type: array, items: { type: object } }
+        policy: { type: object }
+    PipelineResult:
+      type: object
+      properties:
+        account: { type: string }
+        dataSource: { type: string }
+        forecast: { type: object }
+        recommendation: { type: object }
+        verification: { type: object }
+        policy: { type: object }
+        certificate: { type: object }
+        evidence: { type: object }
+    ExecuteResult:
+      type: object
+      properties:
+        mode: { type: string, enum: [arc-testnet, demo, error] }
+        execute: { type: object }
+        onchainCommitment: { type: string }
+        commitmentMatches: { type: boolean }
