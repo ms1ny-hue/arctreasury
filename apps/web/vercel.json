@@ -1,0 +1,6 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "installCommand": "pnpm install --frozen-lockfile > /tmp/vi.log 2>&1 || (grep -q ERR_PNPM_IGNORED_BUILDS /tmp/vi.log || (cat /tmp/vi.log; exit 1))",
+  "buildCommand": "next build"
+}

@@ -4,6 +4,8 @@
 
 **Settlement-liquidity control plane for stablecoin payment companies, built on Arc.**
 
+**Live dashboard: https://web-one-mauve-12.vercel.app** &nbsp;·&nbsp; Contract: [`0x320EbA17…e299122`](https://testnet.arcscan.app/address/0x320EbA17bf997c8D978FA32F1B834b455e299122) &nbsp;·&nbsp; [Execute tx](https://testnet.arcscan.app/tx/0x11532a1057344fb83beadccef522cb944f47f36e5952196276d52fba69ce5090)
+
 ArcTreasury sits between forecasting/data systems and custody/settlement rails as
 the decisioning and orchestration layer for stablecoin settlement liquidity. It
 predicts corridor- and wallet-level funding needs, protects upcoming merchant and
