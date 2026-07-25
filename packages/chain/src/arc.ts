@@ -1,0 +1,137 @@
+import {
+  createPublicClient,
+  createWalletClient,
+  defineChain,
+  http,
+  type PublicClient,
+  type WalletClient,
+} from "viem";
+import { privateKeyToAccount } from "viem/accounts";
+import { hashValue, money, type Money } from "@arctreasury/domain";
+import { ARC_TESTNET } from "@arctreasury/config";
+import { ERC20_ABI, EXECUTOR_ABI } from "./abi.js";
+import type {
+  Address,
+  ApprovedExecutionInput,
+  ChainGateway,
+  ExecutionReceipt,
+  Hash,
+  NetworkStatus,
+  SimulationResult,
+  SubmittedTx,
+} from "./gateway.js";
+
+/** viem chain built from our verified Arc Testnet constants. */
+export const arcTestnetChain = defineChain({
+  id: ARC_TESTNET.chainId,
+  name: ARC_TESTNET.name,
+  nativeCurrency: ARC_TESTNET.nativeCurrency,
+  rpcUrls: { default: { http: [ARC_TESTNET.rpcUrls.primary] } },
+  blockExplorers: { default: { name: "Arcscan", url: ARC_TESTNET.explorerUrl } },
+  testnet: true,
+});
+
+export interface ArcGatewayConfig {
+  rpcUrl?: string;
+  usdcAddress?: Address;
+  executorAddress?: Address;
+  /** Server-side only. Testnet key with no real value. Omit for read-only. */
+  privateKey?: `0x${string}`;
+}
+
+/**
+ * Real Arc Testnet gateway. Reads (balance, block, simulate) work with no
+ * credentials. Writes require a deployed executor and a testnet signer supplied
+ * out-of-band; without them, write calls fail loudly rather than pretending.
+ */
+export class ArcTestnetGateway implements ChainGateway {
+  private readonly pub: PublicClient;
+  private readonly wallet?: WalletClient;
+  private readonly usdc: Address;
+  private readonly executor?: Address;
+
+  constructor(cfg: ArcGatewayConfig = {}) {
+    const rpc = cfg.rpcUrl ?? ARC_TESTNET.rpcUrls.primary;
+    this.pub = createPublicClient({ chain: arcTestnetChain, transport: http(rpc) });
+    this.usdc = (cfg.usdcAddress ?? (ARC_TESTNET.contracts.usdc as Address));
+    if (cfg.executorAddress) this.executor = cfg.executorAddress;
+    if (cfg.privateKey) {
+      const account = privateKeyToAccount(cfg.privateKey);
+      this.wallet = createWalletClient({ account, chain: arcTestnetChain, transport: http(rpc) });
+    }
+  }
+
+  async status(): Promise<NetworkStatus> {
+    try {
+      const bn = await this.pub.getBlockNumber();
+      return {
+        mode: "arc-testnet",
+        chainId: ARC_TESTNET.chainId,
+        blockNumber: Number(bn),
+        connected: true,
+        label: "ARC TESTNET — live reads",
+      };
+    } catch {
+      return { mode: "arc-testnet", chainId: ARC_TESTNET.chainId, blockNumber: null, connected: false, label: "ARC TESTNET — RPC unreachable" };
+    }
+  }
+
+  async getBalance(address: Address): Promise<Money> {
+    // NOTE: Arc's USDC precompile (0x3600...) implements balanceOf but NOT the
+    // standard decimals()/symbol() (they revert). Verified on Arc Testnet:
+    // balanceOf returns 6-decimal units, matching this domain's USDC scale, so
+    // no rescaling is needed. We do not call decimals().
+    const raw = await this.pub.readContract({
+      address: this.usdc,
+      abi: ERC20_ABI,
+      functionName: "balanceOf",
+      args: [address],
+    });
+    return money(raw as bigint, "USDC", 6);
+  }
+
+  async simulateProposal(input: ApprovedExecutionInput): Promise<SimulationResult> {
+    const simulationHash = hashValue({ sim: "arc", input }) as Hash;
+    if (!this.executor) {
+      return { ok: false, reason: "no executor address configured", simulationHash };
+    }
+    try {
+      await this.pub.simulateContract({
+        address: this.executor,
+        abi: EXECUTOR_ABI,
+        functionName: "executeProposal",
+        args: [input.proposalId],
+        ...(this.wallet?.account ? { account: this.wallet.account } : {}),
+      });
+      return { ok: true, simulationHash };
+    } catch (e) {
+      const reason = (e as Error).message.split("\n")[0] ?? "simulation reverted";
+      return { ok: false, reason, simulationHash };
+    }
+  }
+
+  async submitApprovedProposal(input: ApprovedExecutionInput): Promise<SubmittedTx> {
+    if (!this.wallet || !this.wallet.account) throw new Error("No signer configured: set a testnet DEPLOYER_PRIVATE_KEY to submit transactions.");
+    if (!this.executor) throw new Error("No executor address configured.");
+    const txHash = (await this.wallet.writeContract({
+      address: this.executor,
+      abi: EXECUTOR_ABI,
+      functionName: "executeProposal",
+      args: [input.proposalId],
+      account: this.wallet.account,
+      chain: arcTestnetChain,
+    })) as Hash;
+    return { txHash, submittedAt: Math.floor(Date.now() / 1000) };
+  }
+
+  async waitForReceipt(hash: Hash): Promise<ExecutionReceipt> {
+    const r = await this.pub.waitForTransactionReceipt({ hash });
+    return {
+      txHash: hash,
+      blockNumber: Number(r.blockNumber),
+      status: r.status === "success" ? "success" : "reverted",
+      explorerUrl: `${ARC_TESTNET.explorerUrl}/tx/${hash}`,
+      confirmedAt: Math.floor(Date.now() / 1000),
+    };
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "name": "@arctreasury/chain",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": { ".": "./src/index.ts" },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@arctreasury/config": "workspace:*",
+    "@arctreasury/domain": "workspace:*",
+    "viem": "^2.21.55"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.8",
+    "@types/node": "^22.10.2"
+  }
+}

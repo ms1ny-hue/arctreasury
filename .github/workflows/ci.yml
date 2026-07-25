@@ -1,0 +1,33 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  engine:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { submodules: recursive }
+      - uses: pnpm/action-setup@v4
+        with: { version: 11 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - name: Typecheck config/domain/chain
+        run: |
+          for p in config domain chain; do (cd packages/$p && ../../node_modules/.bin/tsc --noEmit); done
+      - name: Domain tests
+        run: cd packages/domain && ../../node_modules/.bin/vitest run
+      - name: Web build
+        run: cd apps/web && ./node_modules/.bin/next build
+
+  contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { submodules: recursive }
+      - uses: foundry-rs/foundry-toolchain@v1
+      - name: Foundry tests
+        run: cd packages/contracts && forge test -vv

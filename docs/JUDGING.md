@@ -1,0 +1,56 @@
+# Judging Guide
+
+## Twenty-second understanding
+
+ArcTreasury is a settlement-liquidity control plane for stablecoin payment companies on
+Arc. It computes the smallest safe funding action to keep every merchant and payout
+obligation covered, proves it with a verifiable coverage certificate, and executes only
+after human approval. AI analyzes and prepares; it never moves money.
+
+## What to look at first
+
+1. `pnpm demo` prints the entire vertical slice in the terminal, including a live Arc read.
+2. `packages/domain` is the engine: forecast, policy, optimizer, independent verifier,
+   certificate, shadow-mode, and the proposal state machine, with 27 tests.
+3. `packages/contracts` is the executor with 17 Foundry tests, including a conservation
+   invariant across 2048 randomized calls.
+4. `apps/web` is the dashboard, server-rendered from the same engine.
+
+## DeFi track fit
+
+Advanced programmable-money flow: multi-step settlement (register, verify, approve, execute)
+governed by on-chain policy, using USDC on Arc as the settlement asset and native gas. The
+scenario shows why a stablecoin-native 24/7 rail changes what is possible: it funds an
+SLA-bound weekend payout that a closed bank rail cannot.
+
+## Truthfulness commitments
+
+- No invented chain ids, RPC URLs, token addresses, SDK methods, transaction hashes, yields,
+  or balances. Network values come from the official Arc docs and are verified live.
+- Data is labeled live, testnet, simulated, or demo. No fake buttons; disabled functionality
+  is explained honestly.
+- Savings are computed from the dataset with formulas shown, and are not annualized.
+
+## What is real vs pending at Checkpoint 2
+
+- Live now: Arc Testnet block and USDC balance reads; the full deterministic engine; the
+  contract logic and tests; the dashboard and CLI.
+- Pending faucet funding: the live on-chain deployment and a verifiable transaction. The
+  entire write path is wired behind `ChainGateway` and runs once the contract is deployed and
+  a testnet key is funded with Arc USDC gas.
+
+## The signature primitive
+
+The Settlement Coverage Certificate: a machine-verifiable record that a specific action keeps
+every mandatory obligation covered under stress, with all binding hashes included. Only its
+opaque SHA-256 commitment goes on-chain, so coverage is provable without publishing any
+treasury data.
+
+## Test commands
+
+```bash
+cd packages/domain && pnpm exec vitest run   # 27 pass
+pnpm contracts:test                          # 17 pass (unit, fuzz, invariant)
+pnpm demo                                     # full lifecycle
+pnpm --filter @arctreasury/web build          # production build
+```

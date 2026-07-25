@@ -1,0 +1,24 @@
+{
+  "name": "arctreasury",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Settlement-liquidity control plane for stablecoin payment companies on Arc. Non-custodial decisioning and orchestration. AI analyzes; humans approve; deterministic policy executes.",
+  "type": "module",
+  "packageManager": "pnpm@11.1.2",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "pnpm -r --filter \"./packages/*\" build",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "demo": "pnpm --filter @arctreasury/demo demo",
+    "contracts:test": "cd packages/contracts && forge test -vv",
+    "contracts:deploy": "cd packages/contracts && ./deploy.sh"
+  },
+  "devDependencies": {
+    "tsx": "^4.23.1",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.8"
+  }
+}
