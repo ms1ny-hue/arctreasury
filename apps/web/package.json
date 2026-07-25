@@ -14,6 +14,7 @@
     "@arctreasury/chain": "workspace:*",
     "@arctreasury/config": "workspace:*",
     "@arctreasury/ai": "workspace:*",
+    "viem": "^2.21.55",
     "next": "^15.1.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"

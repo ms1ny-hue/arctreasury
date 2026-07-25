@@ -38,6 +38,10 @@ export default async function Dashboard() {
             <span className="badge">Human approval</span>
             <span className="badge">Non-custodial</span>
           </div>
+          <div className="actions">
+            <a className="btn" href="/run">Run the live workflow →</a>
+            <a className="btn ghost" href={m.deployment.executeTxUrl} target="_blank" rel="noreferrer">See a settled tx ↗</a>
+          </div>
 
           {/* incident narrative */}
           <div className="incident">
