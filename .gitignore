@@ -16,3 +16,6 @@ packages/contracts/broadcast/
 *.log
 
 .vercel/
+
+apps/indexer/.data/
+*.sqlite

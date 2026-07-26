@@ -1,0 +1,21 @@
+{
+  "name": "@arctreasury/indexer",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/main.ts",
+    "reconcile": "tsx src/main.ts --once",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@arctreasury/config": "workspace:*",
+    "@arctreasury/chain": "workspace:*",
+    "viem": "^2.21.55"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "tsx": "^4.23.1",
+    "@types/node": "^22.10.2"
+  }
+}

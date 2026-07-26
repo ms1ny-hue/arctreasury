@@ -1,199 +1,97 @@
 #!/usr/bin/env -S npx tsx
 /**
- * ArcTreasury MCP server (read / propose only).
+ * ArcTreasury MCP server — READ and PROPOSE only.
  *
- * Exposes treasury analysis and proposal DRAFTING to an MCP client. It does NOT
- * expose approve, sign, execute, arbitrary RPC, arbitrary contract calls, SQL,
- * secret access, or filesystem access. Every proposal it creates enters
- * `awaiting_approval`; a human still approves and executes elsewhere.
+ * MCP tools are model-controlled, so this server deliberately exposes no
+ * approve, sign, submit, transfer, settle, or execute tool. It reads treasury
+ * state, runs the same deterministic domain engine as the REST API, and reads
+ * persisted proposal/reconciliation status from the indexer's durable store.
+ * Human approval and on-chain execution happen outside this surface.
  *
- * Prompt-injection posture: all string inputs are treated as DATA, never as
- * instructions. Identifiers are validated against known entities; free text is
- * length-capped and never interpreted. Each propose/evaluate result carries a
- * provenance envelope (actor, session, tool-call, correlation, input/result
- * hashes, timestamp).
+ * Prompt-injection posture: all string inputs are DATA, never instructions.
+ * Identifiers are validated against known entities.
  */
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import {
+  northstarScenario,
   runForecast,
-  evaluatePolicy,
+  seriesFor,
+  recommendRebalance,
   verifyAction,
-  verifyCertificate,
-  verifyAuditChain,
-  runShadowComparison,
-  fromDecimalString,
+  evaluatePolicy,
+  buildCertificate,
+  resolveArrival,
   hashValue,
   format,
   humanUtc,
-  type LiquidityAction,
   type Money,
 } from "@arctreasury/domain";
-import { TreasuryStore } from "./store.js";
+import { proposalStatus, reconciliationStatus, reconAvailable } from "./recon.js";
 
-const store = new TreasuryStore();
+const data = northstarScenario();
 const SESSION_ID = randomUUID();
 
-// --- serialization: Money -> readable string, bigint -> string ---
-function isMoney(v: unknown): v is Money {
-  return !!v && typeof v === "object" && "amount" in v && "currency" in v && "decimals" in v;
-}
-function j(value: unknown): string {
-  return JSON.stringify(
-    value,
-    (_k, v) => (isMoney(v) ? format(v) : typeof v === "bigint" ? v.toString() : v),
-    2
-  );
-}
-function text(value: unknown) {
-  return { content: [{ type: "text" as const, text: typeof value === "string" ? value : j(value) }] };
-}
-
-function provenance(toolName: string, input: unknown, result: unknown) {
-  return {
-    actorId: "mcp-client",
-    sessionId: SESSION_ID,
-    toolCallId: randomUUID(),
-    correlationId: hashValue({ toolName, input }),
-    inputHash: hashValue(input),
-    resultHash: hashValue(result),
-    timestamp: new Date().toISOString(),
-  };
-}
-
-// Reject unknown pool ids (untrusted input treated as data, matched to entities).
-const poolIds = () => store.data.pools.map((p) => p.id);
+const isMoney = (v: unknown): v is Money => !!v && typeof v === "object" && "amount" in v && "currency" in v;
+const j = (v: unknown) => JSON.stringify(v, (_k, x) => (isMoney(x) ? format(x) : typeof x === "bigint" ? x.toString() : x), 2);
+const text = (v: unknown) => ({ content: [{ type: "text" as const, text: typeof v === "string" ? v : j(v) }] });
+const provenance = (tool: string, input: unknown, result: unknown) => ({
+  actorId: "mcp-client", sessionId: SESSION_ID, toolCallId: randomUUID(),
+  inputHash: hashValue(input), resultHash: hashValue(result), timestamp: new Date().toISOString(),
+});
+const poolIds = () => data.pools.map((p) => p.id);
 const PoolId = z.string().max(64).refine((id) => poolIds().includes(id), { message: "unknown poolId" });
+const Pid = z.string().regex(/^0x[0-9a-fA-F]{64}$/, "bytes32 proposal id");
 
-const server = new McpServer({ name: "arctreasury", version: "0.2.0" });
+const server = new McpServer({ name: "arctreasury", version: "0.3.0" });
 
-server.tool(
-  "get_treasury_snapshot",
-  "Balances, pools, corridors, and data-status for the treasury account.",
-  {},
-  async () => text({
-    accountId: store.data.accountId,
-    asOf: humanUtc(store.data.asOf),
-    dataStatus: store.data.dataStatus,
-    pools: store.data.pools.map((p) => ({ id: p.id, label: p.label, wallet: p.walletAddress, balance: p.balance, operatingReserve: p.operatingReserve, stressedReserve: p.stressedReserve, corridorId: p.corridorId })),
-    corridors: store.data.corridors,
+server.tool("get_live_accounts", "Settlement accounts/wallets and their balances and reserves.", {}, async () =>
+  text({
+    account: data.accountId, dataStatus: data.dataStatus,
+    note: "Demo dataset (Northstar). External datasets enter via the REST ingestion API; live balances would come from an Arc/Circle account adapter.",
+    accounts: data.pools.map((p) => ({ id: p.id, label: p.label, wallet: p.walletAddress, balance: p.balance, operatingReserve: p.operatingReserve, stressedReserve: p.stressedReserve })),
   })
 );
 
-server.tool(
-  "get_liquidity_forecast",
-  "Deterministic forecast for a scenario (base|downside|severe).",
-  { scenario: z.enum(["base", "downside", "severe"]), horizonHours: z.number().int().min(1).max(336).default(48), stepSeconds: z.number().int().min(3600).max(86400).default(3600) },
-  async ({ scenario, horizonHours, stepSeconds }) => {
-    const run = runForecast(store.data, { scenario, horizonHours, stepSeconds });
-    return text({
-      scenario, horizonHours,
-      forecastHash: run.forecastHash,
-      inputSnapshotHash: run.inputSnapshotHash,
-      series: run.series.map((s) => ({ poolId: s.poolId, minBalance: s.minBalance, minBalanceAt: humanUtc(s.minBalanceAt), timeToShortfallSec: s.timeToShortfallSec, requiredTopUp: s.requiredTopUp, maxSafeRelease: s.maxSafeRelease })),
-    });
-  }
+server.tool("list_obligations", "Merchant and payout obligations the forecast must keep covered.", {}, async () =>
+  text(data.obligations.map((o) => ({ id: o.id, kind: o.kind, amount: o.amount, dueAt: humanUtc(o.dueAt), mandatory: o.mandatory, poolId: o.poolId, description: o.description })))
 );
 
-server.tool("list_settlement_obligations", "Contractual outflows the forecast must keep covered.", {}, async () =>
-  text(store.data.obligations.map((o) => ({ id: o.id, kind: o.kind, amount: o.amount, dueAt: humanUtc(o.dueAt), mandatory: o.mandatory, poolId: o.poolId, description: o.description })))
-);
+server.tool("detect_shortfall", "Forecast a stress scenario and report the earliest projected shortfall.", { scenario: z.enum(["base", "downside", "severe"]).default("downside"), poolId: PoolId.default("pool-eu") }, async ({ scenario, poolId }) => {
+  const s = seriesFor(runForecast(data, { scenario, horizonHours: 48, stepSeconds: 3600 }), poolId);
+  return text({ scenario, poolId, minBalance: s.minBalance, shortfallAt: s.timeToShortfallSec === null ? null : humanUtc(data.asOf + s.timeToShortfallSec), requiredTopUp: s.requiredTopUp });
+});
 
-server.tool("get_rail_availability", "Funding rails with health, finality, cutoffs, and windows.", {}, async () =>
-  text({ rails: store.data.rails.map((r) => ({ id: r.id, label: r.label, health: r.health, finality: r.finalityCondition, conservativeCompletionSec: r.conservativeCompletionSec, maxSize: r.maxSize })), windows: store.data.railWindows.map((w) => ({ railId: w.railId, opensAt: humanUtc(w.opensAt), cutoffAt: humanUtc(w.cutoffAt), note: w.note })) })
-);
+server.tool("recommend_rebalance", "PROPOSE the smallest safe funding action (no execution). Read-only analysis.", { sourcePoolId: PoolId.default("pool-us"), destPoolId: PoolId.default("pool-eu") }, async (input) => {
+  const rec = recommendRebalance(data, input);
+  const arrival = resolveArrival(data, rec.action);
+  const result = { authoritativeAmount: rec.authoritativeAmount, maxSafeAmount: rec.maxSafeAmount, sizingMethod: "analytically minimal · single route", conservativeArrivalAt: humanUtc(arrival.arrivalAt), latestSafeExecutionAt: humanUtc(rec.latestSafeExecutionAt), bindingConstraint: rec.bindingConstraint, rail: rec.action.railId, note: "A recommendation, not an approval or execution. A human approves and settles outside MCP." };
+  return text({ ...result, provenance: provenance("recommend_rebalance", input, result) });
+});
 
-server.tool(
-  "evaluate_liquidity_candidate",
-  "Analysis only: run the independent verifier and policy engine for a candidate amount WITHOUT creating a proposal.",
-  { sourcePoolId: PoolId, destPoolId: PoolId, amount: z.string().max(32).regex(/^\d+(\.\d+)?$/) },
-  async (input) => {
-    const action: LiquidityAction = { kind: "rebalance", sourcePoolId: input.sourcePoolId, destPoolId: input.destPoolId, railId: "rail-arc-internal", amount: fromDecimalString(input.amount) };
-    const verification = verifyAction(store.data, action);
-    const policy = evaluatePolicy(store.data, action);
-    const result = { action, verification, policy, verdict: verification.passed && policy.approvable ? "would_be_approvable" : "blocked" };
-    return text({ ...result, provenance: provenance("evaluate_liquidity_candidate", input, result) });
-  }
-);
+server.tool("verify_recommendation", "Independently verify coverage + arrival timing and the deterministic policy for a candidate route.", { sourcePoolId: PoolId.default("pool-us"), destPoolId: PoolId.default("pool-eu") }, async (input) => {
+  const rec = recommendRebalance(data, input);
+  const verification = verifyAction(data, rec.action);
+  const policy = evaluatePolicy(data, rec.action);
+  const result = { verifierPassed: verification.passed, policyApprovable: policy.approvable, checks: verification.checks, policyChecks: policy.checks.map((c) => ({ ruleId: c.ruleId, status: c.status })) };
+  return text({ ...result, provenance: provenance("verify_recommendation", input, result) });
+});
 
-server.tool(
-  "create_liquidity_proposal",
-  "Draft the smallest safe rebalance and register it as a proposal. It ALWAYS enters awaiting_approval; this tool cannot approve or execute.",
-  { sourcePoolId: PoolId, destPoolId: PoolId },
-  async (input) => {
-    const s = store.createProposalFromRoute(input.sourcePoolId, input.destPoolId);
-    const result = {
-      proposalId: s.proposal.id,
-      state: s.proposal.state,
-      action: s.proposal.action,
-      authoritativeAmount: s.recommendation.authoritativeAmount,
-      bindingConstraint: s.recommendation.bindingConstraint,
-      approvable: s.policyEvaluation.approvable,
-      verifierPassed: s.verification.passed,
-      certificateId: s.certificate.certificateId,
-      certificateCommitment: s.certificate.commitment,
-      note: "Human approval and execution happen outside this MCP surface.",
-    };
-    return text({ ...result, provenance: provenance("create_liquidity_proposal", input, result) });
-  }
-);
+server.tool("get_proposal_status", "Persisted on-chain lifecycle (registered/approved/executed) for a proposal id, from the indexer store.", { proposalId: Pid }, async ({ proposalId }) => text(proposalStatus(proposalId)));
 
-server.tool("list_pending_approvals", "Proposals awaiting human approval.", {}, async () =>
-  text(store.listPending().map((s) => ({ proposalId: s.proposal.id, state: s.proposal.state, amount: s.recommendation.authoritativeAmount, dest: s.proposal.action.destPoolId, expiresAt: humanUtc(s.proposal.expiresAt) })))
-);
+server.tool("get_reconciliation_status", "Reconciliation result (pending/matched/mismatched/failed/reorged) for a proposal id, from the indexer store.", { proposalId: Pid }, async ({ proposalId }) => text(reconciliationStatus(proposalId)));
 
-server.tool(
-  "get_settlement_coverage_certificate",
-  "The certificate for a proposal (canonical fields + commitment).",
-  { proposalId: z.string().max(96) },
-  async ({ proposalId }) => {
-    const s = store.get(proposalId);
-    if (!s) return text({ error: "unknown proposalId" });
-    return text(s.certificate);
-  }
-);
-
-server.tool(
-  "verify_settlement_coverage_certificate",
-  "Recompute the certificate commitment and optionally compare to an on-chain bytes32.",
-  { proposalId: z.string().max(96), onchainCommitment: z.string().max(66).optional() },
-  async ({ proposalId, onchainCommitment }) => {
-    const s = store.get(proposalId);
-    if (!s) return text({ error: "unknown proposalId" });
-    return text(verifyCertificate(s.certificate, onchainCommitment));
-  }
-);
-
-server.tool(
-  "get_audit_record",
-  "Append-only audit hash-chain for a proposal, plus an integrity check.",
-  { proposalId: z.string().max(96) },
-  async ({ proposalId }) => {
-    const s = store.get(proposalId);
-    if (!s) return text({ error: "unknown proposalId" });
-    return text({ audit: s.proposal.audit, chainIntact: verifyAuditChain(s.proposal.audit) });
-  }
-);
-
-server.tool(
-  "run_shadow_comparison",
-  "Counterfactual ROI vs a static-buffer baseline. No money moves.",
-  { staticBuffer: z.string().max(32).regex(/^\d+(\.\d+)?$/).default("3000000") },
-  async ({ staticBuffer }) => {
-    const s = store.createProposalFromRoute("pool-us", "pool-eu");
-    return text(runShadowComparison(store.data, s.recommendation, { staticBuffer: fromDecimalString(staticBuffer) }));
-  }
-);
+server.tool("get_audit_evidence", "The tamper-evident evidence bundle for the recommended action (hashes + attestation commitment).", { sourcePoolId: PoolId.default("pool-us"), destPoolId: PoolId.default("pool-eu") }, async (input) => {
+  const rec = recommendRebalance(data, input);
+  const pol = evaluatePolicy(data, rec.action);
+  const cert = buildCertificate(data, rec, pol, hashValue({ sim: "mcp", action: rec.action, forecastHash: rec.forecastHash }));
+  return text({ certificateId: cert.certificateId, attestationCommitment: cert.commitment, inputSnapshotHash: rec.inputSnapshotHash, policyHash: pol.resultHash, forecastHash: rec.forecastHash, coveredObligations: rec.coveredObligationIds, note: "Tamper-evident integrity commitment; not a proof of the truth of private inputs." });
+});
 
 async function main() {
-  const transport = new StdioServerTransport();
-  await server.connect(transport);
-  // stderr only; stdout is the MCP channel.
-  process.stderr.write("arctreasury MCP server (read/propose-only) ready\n");
+  await server.connect(new StdioServerTransport());
+  process.stderr.write(`arctreasury MCP (read/propose-only) ready · indexer store ${reconAvailable() ? "present" : "absent"}\n`);
 }
-main().catch((e) => {
-  process.stderr.write(`fatal: ${(e as Error).message}\n`);
-  process.exit(1);
-});
+main().catch((e) => { process.stderr.write(`fatal: ${(e as Error).message}\n`); process.exit(1); });
