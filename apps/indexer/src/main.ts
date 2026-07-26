@@ -1,36 +1,31 @@
-import { Store } from "./store.js";
+import { isConfigured, migrate, getPool, status } from "@arctreasury/db";
 import { Indexer } from "./indexer.js";
 
 /**
  * Dedicated Arc indexer / reconciliation worker. Runs OUTSIDE the web app (a
- * Vercel function cannot hold a durable connection). Resumes from the persisted
- * block cursor after restart, backfills missed blocks over HTTP, then watches
- * live over WebSocket.
+ * serverless function cannot hold a durable connection). Persists to the SHARED
+ * Neon Postgres (same DB as the web app + MCP). Resumes from the persisted block
+ * cursor after restart; backfills over HTTP; watches live over WebSocket.
  *
- *   pnpm --filter @arctreasury/indexer start          # continuous
- *   pnpm --filter @arctreasury/indexer reconcile      # backfill + reconcile once, then exit
+ *   pnpm --filter @arctreasury/indexer reconcile   # backfill + reconcile once, exit
+ *   pnpm --filter @arctreasury/indexer start        # continuous
  */
-const DB_PATH = process.env.INDEXER_DB ?? new URL("../.data/indexer.sqlite", import.meta.url).pathname;
 const once = process.argv.includes("--once");
 
 async function main() {
-  const store = new Store(DB_PATH);
-  const ix = new Indexer(store);
-  console.log(`indexer db: ${DB_PATH}`);
+  if (!isConfigured()) { console.error("DATABASE_URL not set. This worker requires the shared Postgres."); process.exit(1); }
+  await migrate(); // idempotent
+  const ix = new Indexer();
+  const head = await ix.backfill();
+  const s = await status();
+  console.log(`head ${head} · db ${s.database} · migration ${s.migration} · events ${(s.counts as any)?.events} · matched ${(s.counts as any)?.matched}`);
 
-  await ix.backfill();
-  const s = store.stats();
-  console.log(`store: ${s.events} events, ${s.reconciled} reconciled (${s.matched} matched)`);
-  for (const r of store.listReconciliations().slice(0, 8)) console.log(`  ${r.status.padEnd(10)} ${r.proposalId.slice(0, 18)}…  ${r.executeTx ?? ""}`);
-
-  if (once) { console.log("done (--once)."); return; }
+  if (once) { await getPool().end(); return; }
 
   let stop = () => {};
-  try { stop = await ix.watch(); } catch (e) { console.log(`ws unavailable (${(e as Error).message.split("\n")[0]}); polling backfill every 12s`); }
+  try { stop = await ix.watch(); } catch (e) { console.log(`ws unavailable (${(e as Error).message.split("\n")[0]}); polling every 12s`); }
   const poll = setInterval(() => ix.backfill().catch((e) => console.log("backfill err:", (e as Error).message.split("\n")[0])), 12_000);
-  const shutdown = () => { clearInterval(poll); stop(); console.log("\nshutting down; cursor persisted."); process.exit(0); };
-  process.on("SIGINT", shutdown);
-  process.on("SIGTERM", shutdown);
+  const shutdown = async () => { clearInterval(poll); stop(); await getPool().end().catch(() => {}); console.log("\nshut down; cursor persisted."); process.exit(0); };
+  process.on("SIGINT", shutdown); process.on("SIGTERM", shutdown);
 }
-
 main().catch((e) => { console.error(e); process.exit(1); });

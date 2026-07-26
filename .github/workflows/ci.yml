@@ -28,7 +28,7 @@ jobs:
           fi
       - name: Typecheck config/domain/chain
         run: |
-          for p in config domain chain ai; do (cd packages/$p && ../../node_modules/.bin/tsc --noEmit); done
+          for p in config domain chain ai db; do (cd packages/$p && ../../node_modules/.bin/tsc --noEmit); done
           (cd apps/mcp && ../../node_modules/.bin/tsc --noEmit)
           (cd apps/indexer && ../../node_modules/.bin/tsc --noEmit)
       - name: Domain + AI tests

@@ -1,36 +1,23 @@
-import { DatabaseSync } from "node:sqlite";
-import { existsSync } from "node:fs";
+import { isConfigured, getPool, eventsForProposal } from "@arctreasury/db";
 
 /**
- * Read-only view over the indexer's durable store (the same SQLite file the
- * Arc indexer/reconciliation worker writes). Lets MCP report persisted
- * proposal status and reconciliation without any write path.
+ * Read-only views over the SHARED Neon Postgres (the same DB the indexer worker
+ * and web app write). No write path from MCP.
  */
-const DB_PATH = process.env.INDEXER_DB ?? new URL("../../indexer/.data/indexer.sqlite", import.meta.url).pathname;
-
 export function reconAvailable(): boolean {
-  return existsSync(DB_PATH);
+  return isConfigured();
 }
 
-function open(): DatabaseSync | null {
-  if (!existsSync(DB_PATH)) return null;
-  return new DatabaseSync(DB_PATH, { readOnly: true });
-}
-
-export function proposalStatus(proposalId: string): { state: string; events: { name: string; tx: string; block: number }[] } | { error: string } {
-  const db = open();
-  if (!db) return { error: "indexer store not present; run the indexer worker to populate reconciliation data" };
-  const rows = db.prepare("SELECT event_name, tx_hash, block_number FROM contract_events WHERE proposal_id=? ORDER BY block_number").all(proposalId) as any[];
-  db.close();
-  const names = new Set(rows.map((r) => r.event_name));
+export async function proposalStatus(proposalId: string): Promise<{ state: string; events: { name: string; tx: string; block: number }[] } | { error: string }> {
+  if (!isConfigured()) return { error: "shared database not configured (DATABASE_URL unset)" };
+  const events = await eventsForProposal(proposalId);
+  const names = new Set(events.map((e) => e.eventName));
   const state = names.has("executed") ? "executed" : names.has("approved") ? "approved" : names.has("registered") ? "registered" : "unknown";
-  return { state, events: rows.map((r) => ({ name: r.event_name, tx: r.tx_hash, block: r.block_number })) };
+  return { state, events: events.map((e) => ({ name: e.eventName, tx: e.txHash, block: e.blockNumber })) };
 }
 
-export function reconciliationStatus(proposalId: string): { status: string; detail: string; executeTx: string | null } | { error: string } {
-  const db = open();
-  if (!db) return { error: "indexer store not present; run the indexer worker" };
-  const r = db.prepare("SELECT status, detail, execute_tx FROM reconciliation WHERE proposal_id=?").get(proposalId) as any;
-  db.close();
-  return r ? { status: r.status, detail: r.detail, executeTx: r.execute_tx } : { error: "no reconciliation record for that proposal id" };
+export async function reconciliationStatus(proposalId: string): Promise<{ status: string; detail: string; finality: string; confirmations: number; executeTx: string | null } | { error: string }> {
+  if (!isConfigured()) return { error: "shared database not configured" };
+  const r = (await getPool().query("SELECT status,detail,finality,confirmations,execute_tx FROM reconciliation WHERE proposal_id=$1", [proposalId])).rows[0];
+  return r ? { status: r.status, detail: r.detail, finality: r.finality, confirmations: r.confirmations, executeTx: r.execute_tx } : { error: "no reconciliation record" };
 }

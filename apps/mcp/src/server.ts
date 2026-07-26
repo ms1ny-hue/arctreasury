@@ -79,9 +79,9 @@ server.tool("verify_recommendation", "Independently verify coverage + arrival ti
   return text({ ...result, provenance: provenance("verify_recommendation", input, result) });
 });
 
-server.tool("get_proposal_status", "Persisted on-chain lifecycle (registered/approved/executed) for a proposal id, from the indexer store.", { proposalId: Pid }, async ({ proposalId }) => text(proposalStatus(proposalId)));
+server.tool("get_proposal_status", "Persisted on-chain lifecycle (registered/approved/executed) for a proposal id, from the indexer store.", { proposalId: Pid }, async ({ proposalId }) => text(await proposalStatus(proposalId)));
 
-server.tool("get_reconciliation_status", "Reconciliation result (pending/matched/mismatched/failed/reorged) for a proposal id, from the indexer store.", { proposalId: Pid }, async ({ proposalId }) => text(reconciliationStatus(proposalId)));
+server.tool("get_reconciliation_status", "Reconciliation result (pending/matched/mismatched/failed/reorged) for a proposal id, from the indexer store.", { proposalId: Pid }, async ({ proposalId }) => text(await reconciliationStatus(proposalId)));
 
 server.tool("get_audit_evidence", "The tamper-evident evidence bundle for the recommended action (hashes + attestation commitment).", { sourcePoolId: PoolId.default("pool-us"), destPoolId: PoolId.default("pool-eu") }, async (input) => {
   const rec = recommendRebalance(data, input);
