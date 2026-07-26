@@ -8,12 +8,16 @@ Circle developer-controlled wallets require **your** Circle account: an API key 
 
 ## Provisioning (one time, local)
 
-1. Create a Circle developer account and an **entity secret** in the Circle console. Register the entity secret ciphertext there.
-2. Put these in a local, gitignored env (never printed, never committed):
+1. Create a Circle developer account. In the Console, create a **testnet API key**.
+2. Generate + **register an entity secret** (Console → Configurator, or the official
+   `@circle-fin/developer-controlled-wallets` SDK `registerEntitySecretCiphertext`).
+   Registration downloads a **recovery file** — the only recovery if the entity secret
+   is lost. Store it separately from the entity secret. Never paste it anywhere.
+3. Put these in a local, gitignored env (never printed, never committed):
    ```
    CIRCLE_API_KEY=...
-   CIRCLE_ENTITY_SECRET=...            # 32-byte hex
-   CIRCLE_ARC_BLOCKCHAIN=...           # Circle's Arc Testnet blockchain id, from Circle docs — not guessed
+   CIRCLE_ENTITY_SECRET=...            # 32-byte hex, already registered
+   CIRCLE_ARC_BLOCKCHAIN=ARC-TESTNET   # confirmed Circle enum for Arc Testnet (EOA)
    ```
 3. Create the wallet set + Arc wallet:
    ```
@@ -21,10 +25,21 @@ Circle developer-controlled wallets require **your** Circle account: an API key 
    ```
    Prints only the wallet-set id, wallet id, and public address. Set `CIRCLE_WALLET_ID` and `CIRCLE_WALLET_ADDRESS`.
 4. Fund the wallet address with Arc Testnet gas: https://faucet.circle.com
-5. Grant it the contract roles (run once by the deploying admin, locally):
+5. Grant contract roles (run once by the deploying admin, locally). Maker/checker
+   is kept separate — the script **refuses** to make the Circle wallet an approver
+   unless you explicitly opt into the weaker model:
    ```
-   pnpm tsx scripts/circle/grant-roles.ts <CIRCLE_WALLET_ADDRESS>
+   # Option A — true signer separation (recommended for the strongest claim):
+   #   Circle wallet = proposer + executor; a SEPARATE approver wallet = approver.
+   pnpm tsx scripts/circle/grant-roles.ts <CIRCLE_WALLET_ADDRESS> <SEPARATE_APPROVER_ADDRESS>
+
+   # Option B — application-enforced approval (single wallet, must be disclosed):
+   #   Circle wallet = proposer + approver + executor; approval separation lives in
+   #   the app (Postgres CAS maker/checker), NOT on-chain. No cryptographic-separation claim.
+   pnpm tsx scripts/circle/grant-roles.ts <CIRCLE_WALLET_ADDRESS> --app-enforced
    ```
+   Option A additionally requires a UI "connect wallet & approve on-chain" step and
+   an execute path that requires `getProposal.approved == true` before executing.
 6. Set `CIRCLE_API_KEY`, `CIRCLE_ENTITY_SECRET`, `CIRCLE_ARC_BLOCKCHAIN`, `CIRCLE_WALLET_ID`, `CIRCLE_WALLET_ADDRESS` in Vercel production.
 7. **Remove `DEPLOYER_PRIVATE_KEY` from Vercel.** In production the raw-key signer is refused regardless; removing the value means it is not present at all.
 
