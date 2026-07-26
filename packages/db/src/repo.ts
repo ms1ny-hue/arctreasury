@@ -92,6 +92,23 @@ export async function settleProposal(orgId: string, id: string, txHash: string, 
   await q().query("INSERT INTO arc_transactions(tx_hash,proposal_id,block_number,status,confirmations) VALUES($1,$2,$3,'success',0) ON CONFLICT(tx_hash) DO UPDATE SET block_number=EXCLUDED.block_number", [txHash, id, block]);
 }
 
+/** Record the executing transaction + which signer produced it (evidence, not authority). */
+export async function recordExecution(id: string, e: { txHash: string; block: number; status: string; signerProvider: string; providerTxId: string | null; providerState: string | null; circleWalletId: string | null }): Promise<void> {
+  await q().query(
+    `INSERT INTO arc_transactions(tx_hash,proposal_id,block_number,status,confirmations,signer_provider,provider_tx_id,provider_state,circle_wallet_id)
+     VALUES($1,$2,$3,$4,0,$5,$6,$7,$8)
+     ON CONFLICT(tx_hash) DO UPDATE SET block_number=EXCLUDED.block_number,status=EXCLUDED.status,signer_provider=EXCLUDED.signer_provider,provider_tx_id=EXCLUDED.provider_tx_id,provider_state=EXCLUDED.provider_state,circle_wallet_id=EXCLUDED.circle_wallet_id,updated_at=now()`,
+    [e.txHash, id, e.block, e.status, e.signerProvider, e.providerTxId, e.providerState, e.circleWalletId]
+  );
+}
+
+/** Latest execution row for the status endpoint (provider + state, no secrets). */
+export async function latestExecution(): Promise<{ signerProvider: string | null; providerTxId: string | null; providerState: string | null; txHash: string | null; status: string | null } | null> {
+  const r = await q().query("SELECT signer_provider,provider_tx_id,provider_state,tx_hash,status FROM arc_transactions ORDER BY updated_at DESC LIMIT 1");
+  const x = r.rows[0];
+  return x ? { signerProvider: x.signer_provider, providerTxId: x.provider_tx_id, providerState: x.provider_state, txHash: x.tx_hash, status: x.status } : null;
+}
+
 // --- indexer / reconciliation ---
 export async function putEvent(e: { chainId: number; txHash: string; logIndex: number; blockNumber: number; blockHash: string; eventName: string; proposalId: string; destination: string | null; amount: string | null; sourceSystem: string; observedAt: number; ingestedAt: number; classification: string }): Promise<boolean> {
   const id = `${e.chainId}:${e.txHash}:${e.logIndex}`;
