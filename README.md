@@ -16,8 +16,8 @@ moves across approved settlement accounts.
 
 > **Core thesis (non-negotiable):** AI may analyze, explain, and prepare treasury
 > actions. It may never independently execute a financial transaction. Execution
-> stays behind deterministic policy controls, limits, and human cryptographic
-> approval.
+> stays behind deterministic policy controls, limits, and a persistent,
+> concurrency-safe human-approval workflow.
 
 Programmable Money Hackathon (Encode x Arc x Circle). **DeFi track.** Checkpoint 2
 (mid-submission).
@@ -60,6 +60,20 @@ prove the truth of the private balances, obligations, or the coverage calculatio
 itself; that is verified deterministically off-chain by an independent verifier.
 We therefore call it an attestation and integrity commitment, not a cryptographic
 proof of coverage.
+
+## Signing and approval model (precise)
+
+Human approval is enforced server-side through a persistent, concurrency-safe
+workflow (Postgres state transitions with compare-and-set, one approval per
+proposal) plus an independent verifier. On-chain, one **Circle developer-controlled
+wallet** (Arc Testnet) mechanically signs the `register`, `approve`, and `execute`
+calls; the deployed application holds **no raw private key**. Approval and execution
+are therefore **not** signer-separated on-chain: we do not claim on-chain
+maker/checker, cryptographic separation of approval and execution, or independent
+approval keys. The contract still enforces its ordering (a proposal must be approved
+before it can execute), allowlists, per-transaction cap, expiry, single-execution,
+replay, and deploy-chain guards, and settlement is confirmed from on-chain state
+(`getProposal.executed`), never from a provider's response alone.
 
 ## Why Arc, why stablecoins
 

@@ -153,7 +153,7 @@ export async function POST(req: Request) {
       register: { tx: reg?.txHash ?? null, url: reg?.txHash ? explorerTx(reg.txHash) : null },
       approve: { tx: app?.txHash ?? null, url: app?.txHash ? explorerTx(app.txHash) : null },
       execute: { tx: execHash, url: execHash ? explorerTx(execHash) : null, status: "success" },
-      note: `Real Arc Testnet settlement via ${signer.provider}. Human approval + contract policy authorized it; the signer only submitted it. Settlement is confirmed from on-chain state, not the RPC response.`,
+      note: `Real Arc Testnet settlement via ${signer.provider}. Human approval was recorded server-side (persistent, concurrency-safe workflow); the same wallet mechanically signed register/approve/execute — approval and execution are not signer-separated on-chain. Settlement is confirmed from on-chain state, not the RPC response.`,
     });
   } catch (e) {
     // Left in `executing` for the reconciler to resolve; never silently settled.

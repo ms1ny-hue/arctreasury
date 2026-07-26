@@ -172,7 +172,7 @@ export default function Run() {
           </>
         )}
 
-        <footer>Prototype and testnet software. Not investment advice. Business amounts are simulated (Northstar Pay); on-chain execution is a scaled-down 0.05 USDC transfer on Arc Testnet for safety. The server signer is a testnet-only key held server-side and never exposed to the browser.</footer>
+        <footer>Prototype and testnet software. Not investment advice. Business amounts are simulated (Northstar Pay); on-chain execution is a scaled-down 0.05 USDC transfer on Arc Testnet for safety. Human approval is enforced server-side through a persistent, concurrency-safe workflow; a Circle developer-controlled wallet (Arc Testnet) mechanically records approval and executes settlement on-chain. The deployed application holds no raw private key. Approval and execution are not signer-separated on-chain.</footer>
       </div>
     </>
   );

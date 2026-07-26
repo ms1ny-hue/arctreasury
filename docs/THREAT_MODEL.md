@@ -21,7 +21,7 @@ schedules are ever published to the chain.
 
 | Threat | Mitigation |
 |--------|------------|
-| Key compromise | Contract roles (proposer/approver/executor) separated; execution requires an explicit approver step; pause switch. Keys never in browser, repo, DB, or logs. |
+| Key compromise | Production signing uses a Circle developer-controlled wallet (Arc Testnet); the deployed app holds no raw private key (browser, repo, DB, or logs). One Circle wallet signs register/approve/execute — approval is NOT signer-separated on-chain; it is enforced server-side (Postgres compare-and-set, one approval per proposal) plus an independent verifier. Contract ordering (approve-before-execute), allowlist, cap, expiry, single-execution, and a pause switch still apply. |
 | Malicious destination | Destination allowlist enforced at registration and re-checked at execution. |
 | Stale forecast / manipulated inputs | Data-freshness assertions with per-source thresholds; approval binds input, forecast, route, policy, and simulation hashes; any change invalidates approval. |
 | AI overreach | AI cannot alter balances, forecasts, or policy results, compute the authoritative amount, approve, sign, or call the execution gateway. It only summarizes validated data. |
@@ -33,7 +33,7 @@ schedules are ever published to the chain.
 | Bridge / counterparty / partial failure | Rails carry health, finality, and failure semantics; funds are never counted before economic availability; delayed routes trigger replanning, not duplicate execution. |
 | Stuck or ambiguous transaction | Non-idempotent writes are never blindly retried; execution is idempotent per proposal id; state machine has explicit failed/expired/invalidated terminals. |
 | Misleading UI | Persistent environment badge (Arc Testnet / Simulation / Demo Data); every value carries provenance; test funds are never implied to have value. |
-| Unauthorized policy change / insider approval abuse | Policies are versioned; approval is attributable; a two-person threshold is available for large amounts; the audit log is an append-only hash-chain. |
+| Unauthorized policy change / insider approval abuse | Policies are versioned; approval is attributable; large amounts raise an advisory two-person-review flag (not an on-chain enforced second signer); the audit log is an append-only hash-chain. On-chain signer separation of approval and execution is not implemented in this build (single Circle wallet). |
 | Amount-limit violation | Per-transaction cap enforced in the contract and re-checked independently by the verifier and policy engine. |
 
 ## Pre-execution re-checks

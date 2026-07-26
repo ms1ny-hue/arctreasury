@@ -40,6 +40,11 @@ SLA-bound weekend payout that a closed bank rail cannot.
   [`0x11532a1057344fb83beadccef522cb944f47f36e5952196276d52fba69ce5090`](https://testnet.arcscan.app/tx/0x11532a1057344fb83beadccef522cb944f47f36e5952196276d52fba69ce5090).
 - The private Settlement Coverage Certificate verifies `true` against the `bytes32` committed
   on-chain. All hashes and transactions are in `packages/contracts/deployments/arc-testnet.json`.
+- On-chain settlement is signed by a **Circle developer-controlled wallet** (Arc Testnet); the
+  deployed application holds no raw private key. Human approval is enforced server-side (Postgres
+  compare-and-set + independent verifier). Approval and execution are **not** signer-separated
+  on-chain (single Circle wallet signs register/approve/execute) — we do not claim on-chain
+  maker/checker or cryptographic separation.
 - Also live: Arc Testnet block and USDC balance reads, the full deterministic engine, the
   contract test suite, the dashboard, and the CLI.
 
