@@ -36,9 +36,9 @@ the verifier fails and the proposal cannot become approvable.
 ## 1:45 to 2:20, human approval and Arc
 
 Approve the safe proposal. Approval is enforced server-side through a persistent,
-concurrency-safe workflow (one approval per proposal) plus an independent verifier; the proposal
+concurrency-safe workflow (one approval per proposal) plus a separate deterministic verifier; the proposal
 moves to approved. A Circle developer-controlled wallet (Arc Testnet) then mechanically signs
-register/approve/execute on Arc — the deployed app holds no raw private key. Approval and
+register/approve/execute on Arc; the deployed app holds no raw private key. Approval and
 execution are not signer-separated on-chain. In the live path this submits a real Arc Testnet
 transaction through the deployed executor.
 
@@ -57,6 +57,6 @@ obligation covered on time, with complete audit evidence.
 
 ## Judge takeaway in one line
 
-AI prepared the analysis, deterministic policy and an independent verifier gated it, a human
+AI prepared the analysis, deterministic policy and a separate deterministic verifier gated it, a human
 approved it server-side, a Circle developer-controlled wallet executed it on Arc, and the
 certificate is tamper-evident evidence of coverage. AI never moved the money.
