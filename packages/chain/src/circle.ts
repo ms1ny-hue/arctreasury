@@ -13,8 +13,17 @@
  * Environment classification is explicit: `environment` is always "sandbox" /
  * "testnet" here. There is no mainnet path.
  */
-import { createPublicKey, publicEncrypt, constants as cryptoConstants } from "node:crypto";
+import { createPublicKey, publicEncrypt, createHash, constants as cryptoConstants } from "node:crypto";
 import { encodeFunctionData } from "viem";
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+/** Circle requires UUID-format idempotency keys. Map any stable string to a
+ *  deterministic UUID (sha256 -> v5-shaped) so idempotency is preserved. */
+function toUuid(seed: string): string {
+  if (UUID_RE.test(seed)) return seed;
+  const h = createHash("sha256").update(seed).digest("hex");
+  return `${h.slice(0, 8)}-${h.slice(8, 12)}-5${h.slice(13, 16)}-${((parseInt(h[16], 16) & 0x3) | 0x8).toString(16)}${h.slice(17, 20)}-${h.slice(20, 32)}`;
+}
 
 export interface CircleWallet { id: string; address: string; blockchain: string }
 export interface CircleBalance { token: string; amount: string }
@@ -98,7 +107,7 @@ export class CircleDcwClient {
 
   /** Create a wallet set (one-time). Returns its id. */
   async createWalletSet(name: string, idempotencyKey: string): Promise<{ id: string; name: string }> {
-    const j = await this.req("POST", "/developer/walletSets", { name, idempotencyKey, entitySecretCiphertext: await this.entitySecretCiphertext() });
+    const j = await this.req("POST", "/developer/walletSets", { name, idempotencyKey: toUuid(idempotencyKey), entitySecretCiphertext: await this.entitySecretCiphertext() });
     const ws = j?.data?.walletSet;
     if (!ws?.id) throw new Error("Circle: wallet set not created");
     return { id: ws.id, name: ws.name };
@@ -108,7 +117,7 @@ export class CircleDcwClient {
   async createWallet(walletSetId: string, idempotencyKey: string): Promise<CircleWallet> {
     if (!this.blockchain) throw new Error("Circle: CIRCLE_ARC_BLOCKCHAIN not set (Arc Testnet blockchain id from Circle docs)");
     const j = await this.req("POST", "/developer/wallets", {
-      walletSetId, idempotencyKey, blockchains: [this.blockchain], count: 1, accountType: "EOA",
+      walletSetId, idempotencyKey: toUuid(idempotencyKey), blockchains: [this.blockchain], count: 1, accountType: "EOA",
       entitySecretCiphertext: await this.entitySecretCiphertext(),
     });
     const w = j?.data?.wallets?.[0];
@@ -134,7 +143,7 @@ export class CircleDcwClient {
       walletId: args.walletId,
       contractAddress: args.contractAddress,
       callData,
-      idempotencyKey: args.idempotencyKey,
+      idempotencyKey: toUuid(args.idempotencyKey),
       entitySecretCiphertext: await this.entitySecretCiphertext(),
       feeLevel: args.feeLevel ?? "MEDIUM",
     });
