@@ -1,4 +1,4 @@
-<title>ArcTreasury — Settlement-liquidity assurance on Arc</title>
+<title>ArcTreasury · Settlement-liquidity assurance on Arc</title>
 <style>
   :root{
     --ink:#0A0F1A; --panel:#111A2E; --panel-2:#0E1626; --line:#1F2C46;
@@ -131,7 +131,7 @@
 <header class="hero"><div class="wrap">
   <div class="arcline"></div>
   <p class="eyebrow reveal">Settlement-liquidity assurance for stablecoin payment companies</p>
-  <h1 class="reveal d1">Know whether every critical payout is <span class="g">covered</span>—before settlement time.</h1>
+  <h1 class="reveal d1">Know whether every critical payout is <span class="g">covered</span> before settlement time.</h1>
   <p class="sub reveal d2">ArcTreasury forecasts stressed liquidity, recommends the smallest safe funding move, independently verifies coverage with correct arrival timing, and settles it on Arc under a governed human-approval workflow. AI explains. Deterministic code decides. A person approves. A Circle wallet settles.</p>
   <div class="badges reveal d3">
     <span class="chip live"><span class="d"></span>LIVE on Vercel</span>
@@ -149,7 +149,7 @@
     <div class="card"><h3>Underfund</h3><p>A delayed receivable or a weekend gap and an SLA-bound payout misses. Banks are closed; the obligation is not.</p></div>
     <div class="card"><h3>No evidence</h3><p>Treasury can't prove, before settlement time, that every mandatory obligation stays covered under stress.</p></div>
   </div>
-  <p class="lede" style="margin-top:26px">Bank cutoffs and weekends make the timing hard. Stablecoin rails settle around the clock—so the decision, not the rail, is the bottleneck.</p>
+  <p class="lede" style="margin-top:26px">Bank cutoffs and weekends make the timing hard. Stablecoin rails settle around the clock, so the decision, not the rail, is the bottleneck.</p>
 </div></section>
 
 <section><div class="wrap">
@@ -158,11 +158,11 @@
   <p class="lede" style="margin-top:16px">A real sequence, not a menu. Each step is deterministic and independently checkable; execution is gated on a human decision.</p>
   <div class="pipe">
     <div class="step"><div class="n">01</div><div class="t">Detect</div><div class="d">stress forecast finds the earliest projected shortfall</div></div>
-    <div class="step"><div class="n">02</div><div class="t">Recommend</div><div class="d">smallest safe move · single route · analytically minimal</div></div>
+    <div class="step"><div class="n">02</div><div class="t">Recommend</div><div class="d">smallest safe move, one route</div></div>
     <div class="step"><div class="n">03</div><div class="t">Verify</div><div class="d">independent verifier: coverage + arrival-before-deadline</div></div>
     <div class="step gate"><div class="n">04</div><div class="t">Approve</div><div class="d">human gate · server-side concurrency-safe workflow</div></div>
     <div class="step"><div class="n">05</div><div class="t">Settle</div><div class="d">Circle wallet signs register/approve/execute on Arc</div></div>
-    <div class="step"><div class="n">06</div><div class="t">Audit</div><div class="d">tamper-evident certificate · on-chain integrity commitment</div></div>
+    <div class="step"><div class="n">06</div><div class="t">Audit</div><div class="d">tamper-evident certificate, hash anchored on-chain</div></div>
   </div>
 </div></section>
 
@@ -176,7 +176,7 @@
         <li><b>USDC-denominated gas</b> and sub-second settlement on a stablecoin-native L1.</li>
         <li><b>24/7 rail</b> funds an SLA-bound weekend payout a closed bank rail cannot.</li>
         <li><b>On-chain policy contract</b> enforces allowlist, per-tx cap, expiry, single-execution, replay + deploy-chain guards.</li>
-        <li><b>Reconciled from chain state</b>—settlement is confirmed by <span class="k">getProposal.executed</span>, never a provider's word.</li>
+        <li><b>Reconciled from chain state</b>: settlement is confirmed by <span class="k">getProposal.executed</span>, never a provider's word.</li>
       </ul>
     </div>
     <div class="card">
