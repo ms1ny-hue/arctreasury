@@ -10,6 +10,7 @@
 | Interactive workflow | https://web-one-mauve-12.vercel.app/run |
 | Status / diagnostics | https://web-one-mauve-12.vercel.app/api/status |
 | OpenAPI spec | https://web-one-mauve-12.vercel.app/openapi.yaml |
+| Presentation deck | https://web-one-mauve-12.vercel.app/deck.html |
 | Public repo | https://github.com/ms1ny-hue/arctreasury |
 | Arc explorer | https://testnet.arcscan.app |
 
@@ -24,14 +25,14 @@
 - Circle **developer-controlled wallet** (`ARC-TESTNET`): `0xc72c715da310ae8095dffc4501b3e081244d1969`
 - Circle API op used: `POST /v1/w3s/developer/transactions/contractExecution`
 - Fresh Circle-signed lifecycle from the deployed app:
-  - Circle tx `0f1fa8c9-de98-51ca-b2d1-bab56d2d06b9` → **COMPLETE**
-  - Arc execute [`0xbbcd2b51…`](https://testnet.arcscan.app/tx/0xbbcd2b514320554010901f5478519a454340de4d5e5d6920a350e85561f47ab7) · register `0x1a6bac83…` · approve `0xd21053b9…`
+  - Circle tx `307d410c-55b4-5a61-a104-f02e70b75aea` → **COMPLETE**
+  - Arc execute [`0xb3003de1…`](https://testnet.arcscan.app/tx/0xb3003de10d83b97ab0082d6822fcf86af17329695958ea149498e593918e9e4d)
   - `executed = true`, certificate commitment matches on-chain, reconciled MATCHED/finalized
 - Also: Arc USDC as settlement asset + native gas.
 
 ## What is built
 
-- **Domain engine** (`packages/domain`) — bigint money, deterministic forecast (base/downside/severe), versioned policy, optimizer + **independent verifier**, Settlement Coverage Certificate (SHA-256 integrity commitment), settlement-aware arrival timing, proposal state machine, audit hash-chain, external-dataset ingestion (zod). 36 tests.
+- **Domain engine** (`packages/domain`) — bigint money, deterministic forecast (base/downside/severe), versioned policy, optimizer + **separate deterministic verifier**, Settlement Coverage Certificate (SHA-256 integrity commitment), settlement-aware arrival timing, proposal state machine, audit hash-chain, external-dataset ingestion (zod). 36 tests.
 - **Contract** (`packages/contracts`) — `TreasuryPolicyExecutor.sol` (AccessControl, Pausable, ReentrancyGuard, allowlists, per-tx cap, expiry, single-execution, replay + deploy-chain guards). 17 Foundry tests (fuzz + conservation invariant).
 - **Signer abstraction** (`packages/chain`) — CircleSigner / LegacyPrivateKeySigner (local only) / DisabledSigner. Production signs via Circle; no raw key in the deployed app. 11 tests.
 - **Persistence** — Neon Postgres, versioned migrations, compare-and-set state machine (no double approve/settle), tenant scoping, idempotency.
@@ -43,7 +44,7 @@
 
 ## Approval & signing model (precise, for judges)
 
-Human approval is enforced server-side through a persistent, concurrency-safe workflow (Postgres compare-and-set, one approval per proposal) plus an independent verifier. One Circle developer-controlled wallet mechanically signs register/approve/execute on Arc. Approval and execution are **not** signer-separated on-chain; we do not claim on-chain maker/checker or cryptographic separation. The deployed app holds no raw private key. Settlement is confirmed from on-chain state, never a provider's word.
+Human approval is enforced server-side through a persistent, concurrency-safe workflow (Postgres compare-and-set, one approval per proposal) plus a separate deterministic verifier. One Circle developer-controlled wallet mechanically signs register/approve/execute on Arc. Approval and execution are **not** signer-separated on-chain; we do not claim on-chain maker/checker or cryptographic separation. The deployed app holds no raw private key. Settlement is confirmed from on-chain state, never a provider's word.
 
 ## Docs (`/docs`)
 
@@ -55,8 +56,8 @@ pnpm monorepo · TypeScript · Next.js 15 on **Vercel** · Neon Postgres · viem
 
 ## Still open (not blocking submission)
 
-- 3-minute demo video — NOT recorded
-- Slide deck — NOT built
+- Presentation deck — LIVE at https://web-one-mauve-12.vercel.app/deck.html
+- 3-minute demo video — NOT recorded (final deliverable)
 - Post-hackathon: true on-chain signer separation (Option A), RBAC/auth, always-on worker, backups/PITR, load tests
 
 ## Explicitly NOT part of this project

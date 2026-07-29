@@ -10,8 +10,8 @@ after human approval. AI analyzes and prepares; it never moves money.
 ## What to look at first
 
 1. `pnpm demo` prints the entire vertical slice in the terminal, including a live Arc read.
-2. `packages/domain` is the engine: forecast, policy, optimizer, independent verifier,
-   certificate, shadow-mode, and the proposal state machine, with 27 tests.
+2. `packages/domain` is the engine: forecast, policy, optimizer, a separate deterministic verifier,
+   certificate, shadow-mode, and the proposal state machine, with 36 tests.
 3. `packages/contracts` is the executor with 17 Foundry tests, including a conservation
    invariant across 2048 randomized calls.
 4. `apps/web` is the dashboard, server-rendered from the same engine.
@@ -38,9 +38,9 @@ SLA-bound weekend payout that a closed bank rail cannot.
 - A full governed lifecycle ran on-chain from the **deployed app**, signed by a **Circle
   developer-controlled wallet** (`0xc72c715da310ae8095dffc4501b3e081244d1969`, `ARC-TESTNET`) via
   `POST /v1/w3s/developer/transactions/contractExecution` (Circle tx
-  `0f1fa8c9-de98-51ca-b2d1-bab56d2d06b9`, state COMPLETE). Verifiable execute transaction:
-  [`0xbbcd2b514320554010901f5478519a454340de4d5e5d6920a350e85561f47ab7`](https://testnet.arcscan.app/tx/0xbbcd2b514320554010901f5478519a454340de4d5e5d6920a350e85561f47ab7)
-  (register `0x1a6bac83…`, approve `0xd21053b9…`), reconciled MATCHED/finalized.
+  `307d410c-55b4-5a61-a104-f02e70b75aea`, state COMPLETE). Verifiable execute transaction:
+  [`0xb3003de10d83b97ab0082d6822fcf86af17329695958ea149498e593918e9e4d`](https://testnet.arcscan.app/tx/0xb3003de10d83b97ab0082d6822fcf86af17329695958ea149498e593918e9e4d)
+  reconciled MATCHED/finalized. Certificate commitment `0xf968431140c7…780bdf0e` matches on-chain.
 - The private Settlement Coverage Certificate verifies `true` against the `bytes32` committed
   on-chain. All hashes and transactions are in `packages/contracts/deployments/arc-testnet.json`.
 - On-chain settlement is signed by a **Circle developer-controlled wallet** (Arc Testnet); the

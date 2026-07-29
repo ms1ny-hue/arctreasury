@@ -43,15 +43,66 @@ paths:
       responses:
         "200": { description: Pipeline result, content: { application/json: { schema: { $ref: "#/components/schemas/PipelineResult" } } } }
         "422": { description: Dataset failed schema validation (field-level issues returned) }
+  /api/proposals:
+    post:
+      summary: Create and persist a proposal from a dataset (server derives amount, hashes, commitment)
+      description: >
+        Validates the dataset, computes the recommendation, policy, verification and
+        Settlement Coverage Certificate server-side, and persists the proposal in
+        state awaiting_approval. Idempotent per dataset+route unless a nonce is supplied.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                dataset: { type: object, description: Optional external dataset; omit to use the fixture }
+                sourcePoolId: { type: string }
+                destPoolId: { type: string }
+                nonce: { type: string, description: Optional; yields a fresh proposal }
+      responses:
+        "201": { description: Proposal created, headers: { Location: { schema: { type: string } } } }
+        "422": { description: Dataset failed validation }
+        "503": { description: Persistence not configured }
+  /api/proposals/{id}:
+    get:
+      summary: Full persisted history for a proposal (state, approval, transaction, reconciliation)
+      parameters: [ { name: id, in: path, required: true, schema: { type: string } } ]
+      responses:
+        "200": { description: Proposal history }
+        "404": { description: Not found }
+  /api/proposals/{id}/approve:
+    post:
+      summary: Record human approval (compare-and-set awaiting_approval → approved)
+      parameters: [ { name: id, in: path, required: true, schema: { type: string } } ]
+      requestBody:
+        content: { application/json: { schema: { type: object, properties: { approver: { type: string } } } } }
+      responses:
+        "200": { description: Approved }
+        "409": { description: Not in awaiting_approval (already approved, superseded, or unknown) }
   /api/execute:
     post:
-      summary: Execute a fresh, scaled settlement on Arc Testnet (register → approve → execute)
+      summary: Execute an approved, persisted proposal on Arc Testnet through the configured signer
       description: >
-        Server-side testnet signer only. Moves 0.05 USDC through the deployed
-        policy contract to the allowlisted vault; returns the real transaction
-        and on-chain state. Returns a labelled demo result if no signer is configured.
+        Looks up the stored, org-scoped proposal; requires state approved (or resumes
+        executing); re-checks expiry; the contract enforces destination allowlist,
+        per-transaction cap, approval ordering and single execution. Signs via a Circle
+        developer-controlled wallet in production (no raw key). Idempotent/state-driven:
+        settles only when the contract reports executed == true. Not a provider's word.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [proposalId], properties: { proposalId: { type: string } } }
       responses:
         "200": { description: Execution result, content: { application/json: { schema: { $ref: "#/components/schemas/ExecuteResult" } } } }
+        "409": { description: Not executable in current state / duplicate execute }
+        "503": { description: Signer not available (Circle not provisioned; raw key off in production) }
+  /api/status:
+    get:
+      summary: Diagnostics — database, migration, indexed block, worker heartbeat, reconciliation, signer posture
+      responses:
+        "200": { description: Status (signerProvider, circleConfigured, rawKeyReachable, latestExecution; no secrets) }
   /api/verify-evidence:
     post:
       summary: Independently verify an evidence bundle's integrity commitment (and on-chain commitment)

@@ -10,38 +10,46 @@
   "abiFile": "TreasuryPolicyExecutor.abi.json",
   "deployedAt": "2026-07-25",
   "deployer": "0x200c984AC03C8137cE54Cf4DF65861a1E2841842",
-  "certificateCommitment": "0x94477e063b610788f14f876131ce9ea62593068106e4090a88b590821d4cfa82",
+  "certificateCommitment": "0xf968431140c7a924c1c055168882d4c128fb9b12fcfd3536e0fe21c0780bdf0e",
   "transactions": {
     "deploy": "0x4a40fc71d64158b2656e56a98cf1cfe285e7d151296044bc63ca0dd3b3636574",
     "setTokenAllowed": "0x7fb1c586cd427b7d42371806e8dd8ef14414217dbfe2015dc44a3c8df310050f",
     "setDestinationAllowed": "0x7fe666d6604014009f86c1ef2d4433ac9dcea91f10a95bc0288188a9a5e53849",
     "registerProposal": "0x73464fae12f943abaaae573b936a6d5b56d7daafffd7f3be356746c0996873dc",
-    "executeProposal": "0x086fb732a9e87f654c3cdf9da3a78b13e9afd38bcbc68246eb8cf47a25265457"
+    "executeProposal": "0xb3003de10d83b97ab0082d6822fcf86af17329695958ea149498e593918e9e4d"
   },
   "proof": {
-    "proposalId": "0x73464fae12f943abaaae573b936a6d5b56d7daafffd7f3be356746c0996873dc",
+    "proposalId": "0xd2fe7ea8f62b5c0c0cdaeadc0014fe508d3f89467e7ad33a76e3ca2c54c88201",
     "executeTx": "0x086fb732a9e87f654c3cdf9da3a78b13e9afd38bcbc68246eb8cf47a25265457",
-    "executeBlock": 53656463,
+    "executeBlock": 54201300,
     "onchainCertificateCommitmentMatchesPrivateCertificate": true,
     "isExecuted": true,
     "settledAmountUsdc": "0.050000",
-    "note": "Deployed with a fresh Arc-Testnet-only wallet. Full lifecycle (register -> approve -> execute) ran on-chain; the on-chain bytes32 equals the private Settlement Coverage Certificate's SHA-256. On-chain settlement is a scaled 0.05 USDC transfer; the business amount in the certificate is 2,010,000 USDC."
+    "note": "Deployed with a fresh Arc-Testnet-only wallet. Full lifecycle (register -> approve -> execute) ran on-chain; the on-chain bytes32 equals the private Settlement Coverage Certificate's SHA-256. On-chain settlement is a scaled 0.05 USDC transfer; the business amount in the certificate is 2,010,000 USDC.",
+    "certificateId": "scc-rec-pool-eu-1784898000"
   },
   "circleExecution": {
-    "note": "Fresh Circle developer-controlled wallet (Arc Testnet) signed a full register/approve/execute lifecycle from the DEPLOYED application. Human approval enforced server-side; not signer-separated on-chain.",
+    "note": "CANONICAL current lifecycle. Circle developer-controlled wallet signed register/approve/execute from the deployed app; commitment unified + anchored. Human approval application-enforced (server-side), not on-chain signer-separated.",
     "circleWallet": "0xc72c715da310ae8095dffc4501b3e081244d1969",
     "circleWalletId": "5aae1ab7-cd71-5416-8473-724f5e9ced20",
     "blockchain": "ARC-TESTNET",
-    "circleTransactionId": "0f1fa8c9-de98-51ca-b2d1-bab56d2d06b9",
+    "circleApiOperation": "POST /v1/w3s/developer/transactions/contractExecution",
+    "circleTransactionId": "307d410c-55b4-5a61-a104-f02e70b75aea",
     "circleTransactionState": "COMPLETE",
-    "onchainProposalId": "0x1075c0af149fea72b827d4a67ac1d05762ee2031ee65918d0083744927a9c402",
-    "registerTx": "0x1a6bac83b31d511eb71ad6cfe2a74ed6f5ef1139777acbd33ad97e3b7b894f38",
-    "approveTx": "0xd21053b925ecf94552969fef3d215ed050644d499c69b0bd60efa19d2ba9b0ba",
-    "executeTx": "0xbbcd2b514320554010901f5478519a454340de4d5e5d6920a350e85561f47ab7",
+    "onchainProposalId": "0xd2fe7ea8f62b5c0c0cdaeadc0014fe508d3f89467e7ad33a76e3ca2c54c88201",
+    "executeTx": "0xb3003de10d83b97ab0082d6822fcf86af17329695958ea149498e593918e9e4d",
+    "certificateCommitment": "0xf968431140c7a924c1c055168882d4c128fb9b12fcfd3536e0fe21c0780bdf0e",
     "executed": true,
     "commitmentMatches": true,
-    "settledAmount": "0.050000 USDC",
-    "circleApiOperation": "POST /v1/w3s/developer/transactions/contractExecution",
-    "explorer": "https://testnet.arcscan.app/tx/0xbbcd2b514320554010901f5478519a454340de4d5e5d6920a350e85561f47ab7"
-  }
+    "explorer": "https://testnet.arcscan.app/tx/0xb3003de10d83b97ab0082d6822fcf86af17329695958ea149498e593918e9e4d"
+  },
+  "historical": [
+    {
+      "note": "first anchored lifecycle (pre-commitment-unification; legacy signer). Commitment differs because the certificate sim-hash was later unified.",
+      "certificateCommitment": "0x94477e063b610788f14f876131ce9ea62593068106e4090a88b590821d4cfa82",
+      "executeProposal": "0x086fb732a9e87f654c3cdf9da3a78b13e9afd38bcbc68246eb8cf47a25265457",
+      "proposalId": "0x73464fae12f943abaaae573b936a6d5b56d7daafffd7f3be356746c0996873dc",
+      "executeBlock": 53656463
+    }
+  ]
 }

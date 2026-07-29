@@ -9,6 +9,19 @@ commitment) and the minimum execution data (token, destination, amount, expiry) 
 written on-chain. No balances, forecasts, counterparties, corridors, or payout
 schedules are ever published to the chain.
 
+## On-chain vs off-chain controls (explicit)
+
+**Enforced on-chain** by `TreasuryPolicyExecutor`: token + destination allowlists,
+per-transaction cap, expiry, approval ordering (a proposal must be approved before it
+executes), single-execution, replay guard, deploy-chain guard, pause, and role checks.
+
+**Enforced off-chain** (application + engine, NOT on-chain): the daily aggregate limit,
+the two-person-review threshold (advisory), the coverage calculation, the separate
+deterministic verifier, and the human-approval workflow itself. These are not on the
+chain and are not cryptographically enforced by the contract. The on-chain commitment
+attests that the off-chain evidence is unchanged; it does not prove the off-chain
+controls ran.
+
 ## Trust boundaries
 
 - All external input (CSV, counterparty metadata, transaction memos, API responses)

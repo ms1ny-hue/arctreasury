@@ -6,7 +6,7 @@
 
 *Know whether every critical payout is covered before settlement time.*
 
-**Live dashboard: https://web-one-mauve-12.vercel.app** &nbsp;·&nbsp; Contract: [`0xC43D3b40…B882B86`](https://testnet.arcscan.app/address/0xC43D3b4069B9Bd19C6E24e293aE81E79bB882B86) &nbsp;·&nbsp; [Execute tx](https://testnet.arcscan.app/tx/0x086fb732a9e87f654c3cdf9da3a78b13e9afd38bcbc68246eb8cf47a25265457)
+**Live dashboard: https://web-one-mauve-12.vercel.app** &nbsp;·&nbsp; Contract: [`0xC43D3b40…B882B86`](https://testnet.arcscan.app/address/0xC43D3b4069B9Bd19C6E24e293aE81E79bB882B86) &nbsp;·&nbsp; [Circle-signed execute tx](https://testnet.arcscan.app/tx/0xb3003de10d83b97ab0082d6822fcf86af17329695958ea149498e593918e9e4d)
 
 ArcTreasury sits between forecasting/data systems and custody/settlement rails as
 the decisioning and orchestration layer for stablecoin settlement liquidity. It
@@ -19,8 +19,9 @@ moves across approved settlement accounts.
 > stays behind deterministic policy controls, limits, and a persistent,
 > concurrency-safe human-approval workflow.
 
-Programmable Money Hackathon (Encode x Arc x Circle). **DeFi track.** Checkpoint 2
-(mid-submission).
+A programmable treasury control and settlement layer for stablecoin payment companies,
+submitted in the **DeFi track** of the Programmable Money Hackathon (Encode × Arc × Circle).
+(The on-chain executor is a governed settlement contract, not a DeFi protocol.)
 
 ---
 
@@ -57,7 +58,7 @@ can confirm it is unchanged since commitment, without revealing any treasury dat
 tamper-evidence (the evidence has not changed since it was committed) and that the
 approval and execution controls in the contract were satisfied. It does **not**
 prove the truth of the private balances, obligations, or the coverage calculation
-itself; that is verified deterministically off-chain by an independent verifier.
+itself; that is verified off-chain by a separate deterministic verifier (a second implementation, same codebase).
 We therefore call it an attestation and integrity commitment, not a cryptographic
 proof of coverage.
 
@@ -65,7 +66,7 @@ proof of coverage.
 
 Human approval is enforced server-side through a persistent, concurrency-safe
 workflow (Postgres state transitions with compare-and-set, one approval per
-proposal) plus an independent verifier. On-chain, one **Circle developer-controlled
+proposal) plus a separate deterministic verifier. On-chain, one **Circle developer-controlled
 wallet** (Arc Testnet) mechanically signs the `register`, `approve`, and `execute`
 calls; the deployed application holds **no raw private key**. Approval and execution
 are therefore **not** signer-separated on-chain: we do not claim on-chain
@@ -88,8 +89,9 @@ the commercial decision engine stays rail-neutral while Arc is the complete live
 
 ArcTreasury is not a competitor to Kyriba, Trovata, Fireblocks, or a general TMS. It
 is the decisioning and orchestration layer that sits between those systems and the
-rails. It is non-custodial: execution adapters use customer-controlled wallets or
-authorized custodians, and the on-chain contract governs only the balance it custodies.
+rails. Execution runs through a **customer-controlled execution vault**: the deployed
+application stores no raw signing key, and the on-chain contract governs only the ERC-20
+balance it custodies (it holds and transfers that balance — it is not a claim of zero custody).
 
 ---
 
@@ -100,7 +102,7 @@ TypeScript-first pnpm monorepo (modular monolith, not microservices).
 ```
 packages/
   config/     Verified Arc Testnet constants + typed, validated env (zod)
-  domain/     The engine: money, forecast, policy, optimizer + independent verifier,
+  domain/     The engine: money, forecast, policy, optimizer + separate deterministic verifier,
               certificate, shadow-mode, proposal state machine + audit hash-chain
   chain/      ChainGateway abstraction; ArcTestnetGateway (viem) + DemoGateway
   contracts/  TreasuryPolicyExecutor.sol (Foundry) + tests + deploy script
@@ -187,7 +189,7 @@ pnpm --filter @arctreasury/web dev
 ### Tests
 
 ```bash
-# TypeScript domain + engine (27 tests incl. property-based)
+# TypeScript domain + engine (36 tests incl. property-based)
 cd packages/domain && pnpm exec vitest run
 
 # Smart contract (17 tests: unit, fuzz, conservation invariant)
@@ -211,7 +213,7 @@ pnpm contracts:deploy
 
 ## Arc and Circle integration
 
-**Live and verified now (Checkpoint 2):**
+**Live and verified now:**
 
 - Real Arc Testnet reads through the public RPC: latest block and USDC balances
   (`packages/chain/src/arc.ts`). Verified against chain ID 5042002 at block ~53.6M.
@@ -221,23 +223,31 @@ pnpm contracts:deploy
 - All network-specific values (chain id, RPC, USDC and other contract addresses, explorer,
   faucet) live in typed configuration sourced from the official Arc docs, not invented.
 
-**Deployed and executed live on Arc Testnet (2026-07-25):**
+**Deployed and executed live on Arc Testnet, signed by a Circle developer-controlled wallet:**
 
 - `TreasuryPolicyExecutor` deployed at
   [`0xC43D3b4069B9Bd19C6E24e293aE81E79bB882B86`](https://testnet.arcscan.app/address/0xC43D3b4069B9Bd19C6E24e293aE81E79bB882B86).
-- A full governed lifecycle ran on-chain: register, human approve, and execute. The execute
-  transaction moved USDC through the executor to the allowlisted vault:
-  [`0x086fb732a9e87f654c3cdf9da3a78b13e9afd38bcbc68246eb8cf47a25265457`](https://testnet.arcscan.app/tx/0x086fb732a9e87f654c3cdf9da3a78b13e9afd38bcbc68246eb8cf47a25265457)
-  (block 53656463).
+- A full governed lifecycle ran on-chain from the deployed app — register, approve, execute —
+  all signed by a **Circle developer-controlled wallet** (`0xc72c715d…`, `ARC-TESTNET`) via
+  `POST /v1/w3s/developer/transactions/contractExecution` (Circle tx `307d410c…`, state COMPLETE).
+  The execute transaction moved USDC through the executor to the allowlisted vault:
+  [`0xb3003de10d83b97ab0082d6822fcf86af17329695958ea149498e593918e9e4d`](https://testnet.arcscan.app/tx/0xb3003de10d83b97ab0082d6822fcf86af17329695958ea149498e593918e9e4d)
+  (block 54201300).
 - The private Settlement Coverage Certificate hashes (SHA-256) to the exact `bytes32`
-  committed on-chain (`0x94477e06...1d4cfa82`), verified `true` after execution. Coverage is
-  anchored on Arc without publishing any treasury data (tamper-evidence, not proof of input truth).
-- Full evidence, including every transaction hash and the ABI, is in
+  committed on-chain (`0xf968431140c7…780bdf0e`), verified `true` after execution — the same
+  commitment shown on the homepage, produced deterministically. Tamper-evidence, not proof of
+  input truth.
+- Human approval is enforced server-side (persistent, concurrency-safe workflow); the one
+  Circle wallet then mechanically signs register/approve/execute. Approval and execution are
+  **not** signer-separated on-chain.
+- Full evidence — every transaction hash, the ABI, and the prior (historical) lifecycle — is in
   `packages/contracts/deployments/arc-testnet.json`.
 
-**Circle tooling:** Arc USDC as the settlement asset and native gas token; Circle faucet for
-testnet USDC. CCTP (`TokenMessengerV2`) and Gateway addresses are captured in config as a P1
-funding rail. No permissioned products (StableFX, USYC, Circle Payments Network) are claimed.
+**Circle tooling:** Circle **developer-controlled wallets** sign every on-chain settlement (Arc
+Testnet); Arc USDC is the settlement asset and native gas token; Circle faucet funds testnet
+USDC. CCTP (`TokenMessengerV2`) and Gateway addresses are captured in config as a **roadmap**
+funding rail — not part of the core submission. No permissioned products (StableFX, USYC, Circle
+Payments Network) are claimed.
 
 ## Real vs simulated
 
