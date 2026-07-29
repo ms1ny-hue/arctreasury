@@ -22,8 +22,19 @@ export default function Run() {
   }
   async function settle() {
     setLoading("settle");
-    const r = await fetch("/api/execute", { method: "POST" }).then((x) => x.json());
-    setExec(r); setReveal(6); setLoading(null);
+    try {
+      // Persist a fresh proposal, record the human approval server-side, then
+      // execute through the configured signer (Circle in production).
+      const created = await fetch("/api/proposals", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ scenario, nonce: `run-${Date.now()}` }) }).then((x) => x.json());
+      const id = created.proposalId;
+      if (!id) { setExec({ mode: "error", note: created.error ?? "could not create proposal" }); setReveal(6); setLoading(null); return; }
+      await fetch(`/api/proposals/${id}/approve`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ approver: "treasury-director" }) });
+      const r = await fetch("/api/execute", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ proposalId: id }) }).then((x) => x.json());
+      setExec(r);
+    } catch (e) {
+      setExec({ mode: "error", note: (e as Error).message });
+    }
+    setReveal(6); setLoading(null);
   }
   async function verifyEvidence() {
     if (!pipe) return;
@@ -143,7 +154,9 @@ export default function Run() {
                     <div className="stat"><div className="l">On-chain executed</div><div className="v">{exec.executed ? <span className="good">true ✓</span> : <span className="hot">false</span>}</div></div>
                     <div className="stat"><div className="l">Commitment matches</div><div className="v">{exec.commitmentMatches ? <span className="good">verified ✓</span> : <span className="hot">no</span>}</div></div>
                     <div className="stat"><div className="l">Settled amount</div><div className="v small">{exec.settledAmount}</div></div>
-                    <div className="stat"><div className="l">Register / approve</div><div className="v small"><a href={exec.register.url} target="_blank" rel="noreferrer">reg</a> · <a href={exec.approve.url} target="_blank" rel="noreferrer">appr</a></div></div>
+                    <div className="stat"><div className="l">Register / approve</div><div className="v small">{exec.register?.url ? <a href={exec.register.url} target="_blank" rel="noreferrer">reg</a> : "reg"} · {exec.approve?.url ? <a href={exec.approve.url} target="_blank" rel="noreferrer">appr</a> : "appr"}</div></div>
+                    <div className="stat"><div className="l">Signed by</div><div className="v small">{exec.signerProvider === "circle" ? "Circle wallet ✓" : exec.signerProvider}</div></div>
+                    {exec.circleTransactionId && <div className="stat"><div className="l">Circle tx · state</div><div className="v small">{String(exec.circleTransactionId).slice(0, 12)}… · {exec.circleTransactionState}</div></div>}
                   </div>
                 )}
               </section>

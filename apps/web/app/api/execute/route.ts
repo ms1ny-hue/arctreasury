@@ -6,6 +6,7 @@ import { isConfigured, getProposal, beginExecuting, settleProposal, recordExecut
 import { DEPLOYMENT as deployment } from "../../../lib/pipeline";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 300; // Circle submits 3 sequential on-chain txs; capped to the plan max.
 
 const RPC = process.env.ARC_RPC_URL ?? "https://rpc.blockdaemon.testnet.arc.network";
 const SETTLE_ATOMS = 50_000n; // 0.05 USDC — scaled-down testnet safety; the business amount stays SIMULATED.

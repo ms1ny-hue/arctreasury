@@ -19,7 +19,7 @@ const ENV = "demo-env";
  */
 export async function POST(req: Request) {
   if (!isConfigured()) return NextResponse.json({ error: "persistence not configured (no DATABASE_URL)" }, { status: 503 });
-  let body: { dataset?: unknown; sourcePoolId?: string; destPoolId?: string };
+  let body: { dataset?: unknown; sourcePoolId?: string; destPoolId?: string; nonce?: string | number };
   try { body = await req.json().catch(() => ({})); } catch { body = {}; }
 
   let data;
@@ -48,7 +48,10 @@ export async function POST(req: Request) {
       asOf: data.asOf, dataStatus: data.dataStatus, sourceSystem: body.dataset ? "api" : "fixture",
       snapshotHash: rec.inputSnapshotHash, payload: scenarioToInput(data),
     });
-    const idempotencyKey = `${ORG}:${rec.inputSnapshotHash}:${rec.forecastHash}:${destPoolId}`;
+    // A nonce (e.g. per interactive run) yields a fresh proposal; without it the
+    // create is idempotent per dataset+route.
+    const nonceSuffix = body.nonce != null ? `:${String(body.nonce).slice(0, 40)}` : "";
+    const idempotencyKey = `${ORG}:${rec.inputSnapshotHash}:${rec.forecastHash}:${destPoolId}${nonceSuffix}`;
     const proposal = await createProposal({
       id: `prop-${randomUUID()}`, orgId: ORG, envId: ENV, datasetId,
       sourcePool: sourcePoolId, destPool: destPoolId, destAddress: destPool.walletAddress,
