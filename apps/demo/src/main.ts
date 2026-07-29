@@ -17,6 +17,7 @@ import {
   verifyAction,
   evaluatePolicy,
   buildCertificate,
+  certificateSimHash,
   verifyCertificate,
   runShadowComparison,
   createProposal,
@@ -102,7 +103,7 @@ async function main() {
   kv("Approvable", String(policyEval.approvable));
 
   // --- Simulation hash bound into everything downstream ---
-  const simulationHash = hashValue({ sim: "arctreasury", action: rec.action, forecastHash: rec.forecastHash });
+  const simulationHash = certificateSimHash(rec);
 
   // --- 6. Settlement Coverage Certificate ---
   h(5, "Settlement Coverage Certificate");

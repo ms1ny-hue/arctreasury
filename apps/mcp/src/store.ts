@@ -4,6 +4,7 @@ import {
   verifyAction,
   evaluatePolicy,
   buildCertificate,
+  certificateSimHash,
   hashValue,
   type LiquidityActionProposal,
   type LiquidityRecommendation,
@@ -40,7 +41,7 @@ export class TreasuryStore {
     const rec = recommendRebalance(this.data, { sourcePoolId, destPoolId });
     const policyEvaluation = evaluatePolicy(this.data, rec.action);
     const verification = verifyAction(this.data, rec.action);
-    const simulationHash = hashValue({ sim: "mcp", action: rec.action, forecastHash: rec.forecastHash });
+    const simulationHash = certificateSimHash(rec);
     const certificate = buildCertificate(this.data, rec, policyEvaluation, simulationHash);
     const proposal = createProposal(
       rec,

@@ -6,6 +6,7 @@ import {
   verifyAction,
   evaluatePolicy,
   buildCertificate,
+  certificateSimHash,
   verifyCertificate,
   runShadowComparison,
   createProposal,
@@ -47,6 +48,7 @@ export interface DashboardModel {
     stressedCoverage: string;
     covered: string[];
     validUntil: string;
+    selfConsistent: boolean;
     matchesChain: boolean;
   };
   policy: { ruleId: string; status: string; observed: string; threshold: string }[];
@@ -99,7 +101,7 @@ export async function buildDashboardModel(): Promise<DashboardModel> {
   const rec = recommendRebalance(data, { sourcePoolId: "pool-us", destPoolId: "pool-eu" });
   const verification = verifyAction(data, rec.action);
   const policyEval = evaluatePolicy(data, rec.action);
-  const simulationHash = hashValue({ sim: "arctreasury", action: rec.action, forecastHash: rec.forecastHash });
+  const simulationHash = certificateSimHash(rec);
   const cert = buildCertificate(data, rec, policyEval, simulationHash);
   const certCheck = verifyCertificate(cert, cert.commitment);
   const shadow = runShadowComparison(data, rec, { staticBuffer: fromDecimalString("3000000") });
@@ -179,7 +181,10 @@ export async function buildDashboardModel(): Promise<DashboardModel> {
       stressedCoverage: fmt(cert.stressedMinCoverage),
       covered: cert.coveredObligationIds,
       validUntil: humanUtc(cert.validUntil),
-      matchesChain: certCheck.matchesChain === true,
+      // Real comparison against the anchored on-chain bytes32 (not a self-check).
+      // Null when the RPC is unreachable — then we do NOT claim a chain match.
+      selfConsistent: certCheck.matchesChain === true,
+      matchesChain: live.matchesPrivateCert === true,
     },
     policy: policyEval.checks.map((c) => ({ ruleId: c.ruleId, status: c.status, observed: c.observedValue, threshold: c.threshold })),
     shadow: {

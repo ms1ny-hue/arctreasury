@@ -217,7 +217,11 @@ export default async function Dashboard() {
             <div className="l">Commitment · SHA-256, published on Arc as bytes32</div>
             <div className="v small">{m.certificate.commitment}</div>
           </div>
-          <div className={`callout ${m.certificate.matchesChain ? "good" : "warn"}`}>Self-consistent and matches its on-chain commitment. Covers: {m.certificate.covered.join(", ")}.</div>
+          <div className={`callout ${m.certificate.matchesChain ? "good" : "warn"}`}>{m.certificate.matchesChain
+            ? "Recomputed SHA-256 equals the bytes32 anchored on Arc, read live above."
+            : m.certificate.selfConsistent
+              ? "Recomputed SHA-256 is self-consistent. On-chain match not confirmed here (RPC offline or this exact certificate not yet anchored)."
+              : "Certificate integrity check unavailable."} Covers: {m.certificate.covered.join(", ")}.</div>
         </section>
 
         {/* SHADOW */}

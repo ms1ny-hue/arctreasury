@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import {
   northstarScenario, recommendRebalance, evaluatePolicy, verifyAction, buildCertificate,
-  parseScenarioInput, toScenario, scenarioToInput, hashValue,
+  parseScenarioInput, toScenario, scenarioToInput, hashValue, certificateSimHash,
 } from "@arctreasury/domain";
 import { isConfigured, ensureOrg, ensureEnv, insertDataset, createProposal } from "@arctreasury/db";
 import { ARC_TESTNET } from "@arctreasury/config";
@@ -37,7 +37,7 @@ export async function POST(req: Request) {
   const rec = recommendRebalance(data, { sourcePoolId, destPoolId });
   const policyEval = evaluatePolicy(data, rec.action);
   const verification = verifyAction(data, rec.action);
-  const simHash = hashValue({ sim: "api", action: rec.action, forecastHash: rec.forecastHash });
+  const simHash = certificateSimHash(rec);
   const cert = buildCertificate(data, rec, policyEval, simHash);
 
   try {

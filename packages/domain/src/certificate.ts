@@ -20,6 +20,17 @@ export const CERT_SCHEMA_VERSION = "scc-1.0";
  * certificate can recompute the hash and prove it matches the on-chain
  * bytes32 without revealing balances, corridors, or payout schedules.
  */
+/**
+ * Canonical simulation hash for a recommendation. Deterministic function of the
+ * decision itself (action + forecast + input snapshot) with NO call-path label,
+ * so every surface (homepage, /run pipeline, REST proposals, MCP, demo) produces
+ * the SAME certificate commitment for the same decision — and that commitment is
+ * exactly what gets anchored on-chain. Never fold a route name or timestamp in here.
+ */
+export function certificateSimHash(rec: LiquidityRecommendation): string {
+  return hashValue({ action: rec.action, forecastHash: rec.forecastHash, inputSnapshotHash: rec.inputSnapshotHash });
+}
+
 export function buildCertificate(
   data: TreasuryScenarioData,
   rec: LiquidityRecommendation,

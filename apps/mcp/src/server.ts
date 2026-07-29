@@ -23,6 +23,7 @@ import {
   verifyAction,
   evaluatePolicy,
   buildCertificate,
+  certificateSimHash,
   resolveArrival,
   hashValue,
   format,
@@ -86,7 +87,7 @@ server.tool("get_reconciliation_status", "Reconciliation result (pending/matched
 server.tool("get_audit_evidence", "The tamper-evident evidence bundle for the recommended action (hashes + attestation commitment).", { sourcePoolId: PoolId.default("pool-us"), destPoolId: PoolId.default("pool-eu") }, async (input) => {
   const rec = recommendRebalance(data, input);
   const pol = evaluatePolicy(data, rec.action);
-  const cert = buildCertificate(data, rec, pol, hashValue({ sim: "mcp", action: rec.action, forecastHash: rec.forecastHash }));
+  const cert = buildCertificate(data, rec, pol, certificateSimHash(rec));
   return text({ certificateId: cert.certificateId, attestationCommitment: cert.commitment, inputSnapshotHash: rec.inputSnapshotHash, policyHash: pol.resultHash, forecastHash: rec.forecastHash, coveredObligations: rec.coveredObligationIds, note: "Tamper-evident integrity commitment; not a proof of the truth of private inputs." });
 });
 

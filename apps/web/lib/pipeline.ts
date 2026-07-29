@@ -6,6 +6,7 @@ import {
   verifyAction,
   evaluatePolicy,
   buildCertificate,
+  certificateSimHash,
   resolveArrival,
   hashValue,
   canonicalize,
@@ -19,7 +20,7 @@ import { ARC_TESTNET } from "@arctreasury/config";
 import deployment from "../../../packages/contracts/deployments/arc-testnet.json";
 
 export const DEPLOYMENT = deployment;
-const SIM = "0xsim-pipeline";
+
 
 export type ScenarioChoice = "downside" | "severe" | "base";
 
@@ -48,7 +49,7 @@ export function computePipeline(scenario: ScenarioChoice = "downside", opts: Pip
   const arrival = resolveArrival(data, rec.action);
   const verification = verifyAction(data, rec.action);
   const policyEval = evaluatePolicy(data, rec.action);
-  const cert = buildCertificate(data, rec, policyEval, SIM);
+  const cert = buildCertificate(data, rec, policyEval, certificateSimHash(rec));
 
   const covered = data.obligations.filter((o) => rec.coveredObligationIds.includes(o.id));
 
