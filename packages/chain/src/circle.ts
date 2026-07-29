@@ -22,7 +22,8 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 function toUuid(seed: string): string {
   if (UUID_RE.test(seed)) return seed;
   const h = createHash("sha256").update(seed).digest("hex");
-  return `${h.slice(0, 8)}-${h.slice(8, 12)}-5${h.slice(13, 16)}-${((parseInt(h[16], 16) & 0x3) | 0x8).toString(16)}${h.slice(17, 20)}-${h.slice(20, 32)}`;
+  const variant = ((parseInt(h.slice(16, 17) || "8", 16) & 0x3) | 0x8).toString(16);
+  return `${h.slice(0, 8)}-${h.slice(8, 12)}-5${h.slice(13, 16)}-${variant}${h.slice(17, 20)}-${h.slice(20, 32)}`;
 }
 
 export interface CircleWallet { id: string; address: string; blockchain: string }
