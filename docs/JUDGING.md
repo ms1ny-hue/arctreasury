@@ -34,10 +34,13 @@ SLA-bound weekend payout that a closed bank rail cannot.
 ## What is live on Arc Testnet
 
 - Contract deployed: `TreasuryPolicyExecutor` at
-  [`0x320EbA17bf997c8D978FA32F1B834b455e299122`](https://testnet.arcscan.app/address/0x320EbA17bf997c8D978FA32F1B834b455e299122).
-- A full governed lifecycle executed on-chain (register, approve, execute). Verifiable execute
-  transaction:
-  [`0x11532a1057344fb83beadccef522cb944f47f36e5952196276d52fba69ce5090`](https://testnet.arcscan.app/tx/0x11532a1057344fb83beadccef522cb944f47f36e5952196276d52fba69ce5090).
+  [`0xC43D3b4069B9Bd19C6E24e293aE81E79bB882B86`](https://testnet.arcscan.app/address/0xC43D3b4069B9Bd19C6E24e293aE81E79bB882B86).
+- A full governed lifecycle ran on-chain from the **deployed app**, signed by a **Circle
+  developer-controlled wallet** (`0xc72c715da310ae8095dffc4501b3e081244d1969`, `ARC-TESTNET`) via
+  `POST /v1/w3s/developer/transactions/contractExecution` (Circle tx
+  `0f1fa8c9-de98-51ca-b2d1-bab56d2d06b9`, state COMPLETE). Verifiable execute transaction:
+  [`0xbbcd2b514320554010901f5478519a454340de4d5e5d6920a350e85561f47ab7`](https://testnet.arcscan.app/tx/0xbbcd2b514320554010901f5478519a454340de4d5e5d6920a350e85561f47ab7)
+  (register `0x1a6bac83…`, approve `0xd21053b9…`), reconciled MATCHED/finalized.
 - The private Settlement Coverage Certificate verifies `true` against the `bytes32` committed
   on-chain. All hashes and transactions are in `packages/contracts/deployments/arc-testnet.json`.
 - On-chain settlement is signed by a **Circle developer-controlled wallet** (Arc Testnet); the

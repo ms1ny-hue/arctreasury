@@ -26,5 +26,22 @@
     "isExecuted": true,
     "settledAmountUsdc": "0.050000",
     "note": "Deployed with a fresh Arc-Testnet-only wallet. Full lifecycle (register -> approve -> execute) ran on-chain; the on-chain bytes32 equals the private Settlement Coverage Certificate's SHA-256. On-chain settlement is a scaled 0.05 USDC transfer; the business amount in the certificate is 2,010,000 USDC."
+  },
+  "circleExecution": {
+    "note": "Fresh Circle developer-controlled wallet (Arc Testnet) signed a full register/approve/execute lifecycle from the DEPLOYED application. Human approval enforced server-side; not signer-separated on-chain.",
+    "circleWallet": "0xc72c715da310ae8095dffc4501b3e081244d1969",
+    "circleWalletId": "5aae1ab7-cd71-5416-8473-724f5e9ced20",
+    "blockchain": "ARC-TESTNET",
+    "circleTransactionId": "0f1fa8c9-de98-51ca-b2d1-bab56d2d06b9",
+    "circleTransactionState": "COMPLETE",
+    "onchainProposalId": "0x1075c0af149fea72b827d4a67ac1d05762ee2031ee65918d0083744927a9c402",
+    "registerTx": "0x1a6bac83b31d511eb71ad6cfe2a74ed6f5ef1139777acbd33ad97e3b7b894f38",
+    "approveTx": "0xd21053b925ecf94552969fef3d215ed050644d499c69b0bd60efa19d2ba9b0ba",
+    "executeTx": "0xbbcd2b514320554010901f5478519a454340de4d5e5d6920a350e85561f47ab7",
+    "executed": true,
+    "commitmentMatches": true,
+    "settledAmount": "0.050000 USDC",
+    "circleApiOperation": "POST /v1/w3s/developer/transactions/contractExecution",
+    "explorer": "https://testnet.arcscan.app/tx/0xbbcd2b514320554010901f5478519a454340de4d5e5d6920a350e85561f47ab7"
   }
 }
