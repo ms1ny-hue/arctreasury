@@ -29,9 +29,9 @@ export default async function Dashboard() {
           </h1>
           <p className="lede">
             For payment companies running 24/7 stablecoin flows. ArcTreasury forecasts stressed liquidity, recommends the
-            <b> smallest safe funding action</b>, independently verifies that funds actually <b>arrive before each
-            obligation&apos;s deadline</b>, and requires human approval before USDC moves on Arc. <b>AI explains; deterministic
-            code decides; a human approves.</b>
+            <b> smallest safe funding action</b>, verifies with a separate deterministic check that funds actually <b>arrive before each
+            obligation&apos;s deadline</b>, and requires an explicit, persisted approval step before USDC moves on Arc. <b>AI explains; deterministic
+            code decides; a person approves.</b> <span style={{ opacity: 0.7 }}>Approval is enforced server-side; production RBAC and on-chain signer separation are post-hackathon.</span>
           </p>
           <div className="badges">
             <span className="badge on">Live on Arc Testnet</span>

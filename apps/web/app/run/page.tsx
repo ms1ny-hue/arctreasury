@@ -130,7 +130,7 @@ export default function Run() {
               <section className="card">
                 <div className="card-eyebrow">4 · Approve</div>
                 <h2>Human approval</h2>
-                <p className="sub">Nothing executes until a person approves. Review the binding constraint and consequence of inaction, then approve.</p>
+                <p className="sub">Nothing executes until an explicit approval is recorded. Review the binding constraint and consequence of inaction, then approve. Approval is persisted server-side (not an authenticated named approver in this demo; production RBAC is post-hackathon).</p>
                 <div className="callout"><strong>Consequence of inaction:</strong> {pipe.recommendation.consequence}</div>
                 <div className="actions">
                   <label className="appr"><input type="checkbox" checked={approved} onChange={(e) => setApproved(e.target.checked)} /> I approve this proposal for execution on Arc Testnet</label>
