@@ -20,3 +20,6 @@ packages/contracts/broadcast/
 apps/indexer/.data/
 *.sqlite
 .env*.local
+
+# Circle entity-secret recovery file — never commit
+circle-recovery/
