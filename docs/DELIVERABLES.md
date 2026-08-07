@@ -6,11 +6,11 @@
 
 | Deliverable | URL |
 |---|---|
-| Live app (Vercel) | https://web-one-mauve-12.vercel.app |
-| Interactive workflow | https://web-one-mauve-12.vercel.app/run |
-| Status / diagnostics | https://web-one-mauve-12.vercel.app/api/status |
-| OpenAPI spec | https://web-one-mauve-12.vercel.app/openapi.yaml |
-| Presentation deck | https://web-one-mauve-12.vercel.app/deck.html |
+| Live app (Vercel) | https://arctreasury-arc.vercel.app |
+| Interactive workflow | https://arctreasury-arc.vercel.app/run |
+| Status / diagnostics | https://arctreasury-arc.vercel.app/api/status |
+| OpenAPI spec | https://arctreasury-arc.vercel.app/openapi.yaml |
+| Presentation deck | https://arctreasury-arc.vercel.app/deck.html |
 | Public repo | https://github.com/ms1ny-hue/arctreasury |
 | Arc explorer | https://testnet.arcscan.app |
 
@@ -56,7 +56,7 @@ pnpm monorepo · TypeScript · Next.js 15 on **Vercel** · Neon Postgres · viem
 
 ## Still open (not blocking submission)
 
-- Presentation deck — LIVE at https://web-one-mauve-12.vercel.app/deck.html
+- Presentation deck — LIVE at https://arctreasury-arc.vercel.app/deck.html
 - 3-minute demo video — NOT recorded (final deliverable)
 - Post-hackathon: true on-chain signer separation (Option A), RBAC/auth, always-on worker, backups/PITR, load tests
 

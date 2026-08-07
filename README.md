@@ -6,7 +6,7 @@
 
 *Know whether every critical payout is covered before settlement time.*
 
-**Live dashboard: https://web-one-mauve-12.vercel.app** &nbsp;·&nbsp; Contract: [`0xC43D3b40…B882B86`](https://testnet.arcscan.app/address/0xC43D3b4069B9Bd19C6E24e293aE81E79bB882B86) &nbsp;·&nbsp; [Circle-signed execute tx](https://testnet.arcscan.app/tx/0xb3003de10d83b97ab0082d6822fcf86af17329695958ea149498e593918e9e4d)
+**Live dashboard: https://arctreasury-arc.vercel.app** &nbsp;·&nbsp; Contract: [`0xC43D3b40…B882B86`](https://testnet.arcscan.app/address/0xC43D3b4069B9Bd19C6E24e293aE81E79bB882B86) &nbsp;·&nbsp; [Circle-signed execute tx](https://testnet.arcscan.app/tx/0xb3003de10d83b97ab0082d6822fcf86af17329695958ea149498e593918e9e4d)
 
 ArcTreasury sits between forecasting/data systems and custody/settlement rails as
 the decisioning and orchestration layer for stablecoin settlement liquidity. It
@@ -142,11 +142,11 @@ settlement position through the ingestion boundary and get its own result.
 
 ```bash
 # 1. Fetch the example dataset (the fixture in external format)
-curl -s https://web-one-mauve-12.vercel.app/api/dataset/example > dataset.json
+curl -s https://arctreasury-arc.vercel.app/api/dataset/example > dataset.json
 
 # 2. Edit any field (a balance, an obligation amount, a rail's arrival time),
 #    then run the engine over YOUR dataset — no code change:
-curl -s -X POST https://web-one-mauve-12.vercel.app/api/pipeline \
+curl -s -X POST https://arctreasury-arc.vercel.app/api/pipeline \
   -H 'content-type: application/json' \
   -d "{\"dataset\": $(cat dataset.json), \"scenario\": \"downside\"}" | jq .recommendation.amount
 ```
@@ -154,7 +154,7 @@ curl -s -X POST https://web-one-mauve-12.vercel.app/api/pipeline \
 Changing an obligation changes the required amount; pushing a rail's conservative
 arrival past the shortfall deadline makes the verifier reject the route. Malformed
 input is rejected with field-level errors (HTTP 422). See `apps/web/public/openapi.yaml`
-([live](https://web-one-mauve-12.vercel.app/openapi.yaml)) for the full schema.
+([live](https://arctreasury-arc.vercel.app/openapi.yaml)) for the full schema.
 
 Independence: ArcTreasury is an independent hackathon project, not affiliated with
 or endorsed by any sponsor or employer.

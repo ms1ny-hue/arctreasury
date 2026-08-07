@@ -9,7 +9,7 @@ info:
     verification, and a tamper-evident evidence bundle. Business data is
     caller-supplied; Arc reads and settlement are real testnet.
 servers:
-  - url: https://web-one-mauve-12.vercel.app
+  - url: https://arctreasury-arc.vercel.app
 paths:
   /api/dataset/example:
     get:
