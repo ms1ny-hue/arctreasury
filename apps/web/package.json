@@ -17,7 +17,6 @@
     "@arctreasury/domain": "workspace:*",
     "@radix-ui/react-checkbox": "^1.3.11",
     "@radix-ui/react-collapsible": "^1.1.20",
-    "@radix-ui/react-select": "^2.3.7",
     "@radix-ui/react-tooltip": "^1.2.16",
     "@radix-ui/react-visually-hidden": "^1.2.11",
     "next": "^15.1.3",

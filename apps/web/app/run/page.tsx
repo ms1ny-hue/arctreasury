@@ -3,7 +3,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { InfoTip, TooltipProvider } from "../../components/ui/tooltip";
 import { Disclosure } from "../../components/ui/collapsible";
 import { ApprovalCheckbox } from "../../components/ui/checkbox";
-import { ScenarioSelect, type SelectChoice } from "../../components/ui/select";
 import { Alert, LiveRegion } from "../../components/ui/alert";
 import { Toaster, toast } from "../../components/ui/toaster";
 import {
@@ -17,7 +16,17 @@ import {
 
 const STEPS = ["Detect", "Recommend", "Verify", "Approve", "Settle", "Audit"] as const;
 
-const SCENARIOS: readonly SelectChoice[] = [
+interface ScenarioChoice {
+  value: string;
+  label: string;
+}
+
+/**
+ * Native <select> is kept deliberately. A Radix Select cost 14 kB of first-load
+ * JS for a three-option picker, and the native control has better touch
+ * behaviour on mobile. The styling hook (.scenario) already matches the skin.
+ */
+const SCENARIOS: readonly ScenarioChoice[] = [
   { value: "downside", label: "Downside — delayed receivable, +5% outflows" },
   { value: "severe", label: "Severe — larger delays and outflows" },
   { value: "base", label: "Base — no stress" },
@@ -225,7 +234,9 @@ export default function Run() {
             scaled-down USDC movement through the deployed contract on Arc Testnet.
           </p>
 
-          <ol className="stepper" aria-label="Workflow progress">
+          {/* role="list" is required: `list-style: none` strips list semantics
+              from the a11y tree in WebKit and is inconsistent elsewhere. */}
+          <ol className="stepper" role="list" aria-label="Workflow progress">
             {STEPS.map((s, i) => {
               const state = activeStep > i ? "done" : activeStep === i ? "active" : "";
               return (
@@ -242,15 +253,28 @@ export default function Run() {
           </ol>
 
           <div className="actions">
-            <ScenarioSelect
+            <select
+              className="scenario"
               value={scenario}
-              onValueChange={setScenario}
-              choices={SCENARIOS}
+              onChange={(e) => setScenario(e.target.value)}
               disabled={loading === "detect"}
-              ariaLabel="Stress scenario"
-            />
+              aria-label="Stress scenario"
+            >
+              {SCENARIOS.map((c) => (
+                <option key={c.value} value={c.value}>
+                  {c.label}
+                </option>
+              ))}
+            </select>
             <button className="btn" onClick={detect} disabled={loading === "detect"}>
-              {loading === "detect" ? <span className="spin" /> : "1 · Detect shortfall"}
+              {loading === "detect" ? (
+                <>
+                  <span className="spin" />
+                  <span className="sr-only">Detecting shortfall</span>
+                </>
+              ) : (
+                "1 · Detect shortfall"
+              )}
             </button>
           </div>
         </header>
@@ -458,8 +482,8 @@ export default function Run() {
 
                 {isError(exec) ? (
                   <Alert tone="error" title="Execution failed.">
-                    {exec.note} Nothing was settled on-chain. The proposal remains unexecuted and can
-                    be retried.
+                    {exec.note.replace(/\.?\s*$/, ".")} Nothing was settled on-chain. The proposal
+                    remains unexecuted and can be retried.
                   </Alert>
                 ) : (
                   <p className="sub">{exec.note}</p>
@@ -565,7 +589,14 @@ export default function Run() {
                     onClick={verifyEvidence}
                     disabled={loading === "verify"}
                   >
-                    {loading === "verify" ? <span className="spin" /> : "Verify evidence"}
+                    {loading === "verify" ? (
+                      <>
+                        <span className="spin" />
+                        <span className="sr-only">Verifying evidence</span>
+                      </>
+                    ) : (
+                      "Verify evidence"
+                    )}
                   </button>
                 </div>
                 {verifyRes && (

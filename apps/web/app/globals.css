@@ -254,6 +254,11 @@ footer { color: var(--faint); font-size: 12.5px; border-top: 1px solid var(--lin
   font: inherit; color: inherit; background: none; border: 0; padding: 0;
   cursor: help; display: inline-flex; align-items: center; gap: 5px;
   border-bottom: 1px dotted var(--line-2);
+  /* `font: inherit` resets the font shorthand but NOT these two, and the UA
+     button style would otherwise drop the uppercase treatment that sibling
+     .stat .l labels carry. Without this the tooltip labels read lowercase
+     next to uppercase ones. */
+  text-transform: inherit; letter-spacing: inherit;
 }
 .infotip-trigger:hover { border-bottom-color: var(--cyan); }
 .infotip-mark {
